@@ -11,7 +11,7 @@ import pandas as pd
 from jade import jadeR
 from functools import reduce
 import numpy as np
-from ICA import fastICA
+from fastICA import fastICA
 #%%
 # Load ECG data
 df = pd.read_table('../data/ecg/foetal_ecg.dat', sep="\s+", header=None)
