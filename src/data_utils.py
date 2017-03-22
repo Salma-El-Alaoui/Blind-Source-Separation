@@ -9,7 +9,20 @@ from scipy.io import wavfile
 from scipy.misc import imread
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 
+class ECG_data:
+    def __init__(self):
+        pass
+    
+    def load(self):
+        df = pd.read_table('../data/ecg/foetal_ecg.dat', sep="\s+", header=None)
+        channels = []
+        for i in range(8):
+            channel = df[i+1]
+            channels.append(channel.values)
+        return channels
+        
 class Audio:
     """
     Implementation not complete
