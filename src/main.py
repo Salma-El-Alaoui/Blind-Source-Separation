@@ -11,6 +11,7 @@ import pandas as pd
 from jade import jadeR
 from functools import reduce
 import numpy as np
+from sklearn.decomposition import FastICA
 #%%
 # Load ECG data
 df = pd.read_table('../data/ecg/foetal_ecg.dat', sep="\s+", header=None)
@@ -26,7 +27,8 @@ for i in range(8):
     
 channels_3 = np.array(channels[:3])
 
-unmixing_mat = np.asarray(jadeR(channels_3))
+#unmixing_mat = np.asarray(jadeR(channels_3))
+unmixing_mat = FastICA(n_components = 3).fit(channels_3).components_
 
 print(unmixing_mat)
 A_hat = np.linalg.inv(unmixing_mat)
