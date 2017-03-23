@@ -86,24 +86,31 @@ plt.title('foetus')
 #%% MICA on images
 
 from data_utils import Image
+import cv2
 
-im_gl_path = '../data/image/'
-paths = [im_gl_path + 'lena.jpeg',im_gl_path + 'emma.jpeg']
-mixture_1 = Image(paths=paths).mix_images([0.5,0.5])
-mixture_2 = Image(paths=paths).mix_images(weights=[0.2,0.8],verbose=1)
-mixture_3 = Image(paths=paths).mix_images(weights=[0.15,0.85],verbose=1)
+#im_gl_path = '../data/image/'
+#paths = [im_gl_path + 'lena.jpeg',im_gl_path + 'emma.jpeg']
+#mixture_1 = Image(paths=paths).mix_images([0.5,0.5])
+#mixture_2 = Image(paths=paths).mix_images(weights=[0.2,0.8],verbose=1)
+#mixture_3 = Image(paths=paths).mix_images(weights=[0.15,0.85],verbose=1)
+#
+#mixtures = np.array([mixture_1.flatten(),mixture_2.flatten(),mixture_3.flatten()])
+#unmixing_mat, _,_ = fastICA(mixtures.T)
+#A_hat = np.linalg.inv(unmixing_mat)
+#
+#y = np.dot(unmixing_mat,mixtures)
+#
+#for i in range(3):
+#    plt.figure()
+#    plt.imshow(y[i,:].reshape(mixture_1.shape),cmap='gray')
+#    plt.title('y for source ' + str(i))
 
-mixtures = np.array([mixture_1.flatten(),mixture_2.flatten(),mixture_3.flatten()])
-unmixing_mat, _,_ = fastICA(channels_3.T)
+mixture_1 = cv2.imread("../data/image/blend1.png", 0)
+mixture_2 = cv2.imread("../data/image/blend2.png", 0)
+mixtures = np.array([mixture_1.flatten(),mixture_2.flatten(),])
+
+unmixing_mat, _,_ = fastICA(mixtures.T)
 A_hat = np.linalg.inv(unmixing_mat)
-
-y = np.dot(unmixing_mat,mixtures)
-
-for i in range(3):
-    plt.figure()
-    plt.imshow(y[i,:].reshape(mixture_1.shape),cmap='gray')
-    plt.title('y for source ' + str(i))
-
 #%%    
 c_mother = [0, 2] #[0,1]
 c_foetus = 1 #2
