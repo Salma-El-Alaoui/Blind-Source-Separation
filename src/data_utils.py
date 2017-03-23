@@ -10,6 +10,7 @@ from scipy.misc import imread
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from scipy.misc import imresize
 
 class ECG_data:
     def __init__(self):
@@ -49,14 +50,15 @@ class Audio:
     
 class Image:
     
-    def __init__(self,paths):
+    def __init__(self,paths,shape=(225,225)):
         self.paths = paths
+        self.shape = shape
         
     def _load_images(self):
         images = []
         for path in self.paths:
             image = imread(path)
-            image_bw = image[:,:,0]
+            image_bw = imresize(image[:,:,0],(self.shape,self.shape))
             images.append(image_bw)
         self.images = images
 

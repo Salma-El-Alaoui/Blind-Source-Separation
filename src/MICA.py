@@ -89,9 +89,9 @@ from data_utils import Image
 
 im_gl_path = '../data/image/'
 paths = [im_gl_path + 'lena.jpeg',im_gl_path + 'emma.jpeg']
-mixture_1 = Image(paths=paths).mix_images()
+mixture_1 = Image(paths=paths).mix_images([0.5,0.5])
 mixture_2 = Image(paths=paths).mix_images(weights=[0.2,0.8],verbose=1)
-mixture_3 = Image(paths=paths).mix_images(weights=[0.7,0.3],verbose=1)
+mixture_3 = Image(paths=paths).mix_images(weights=[0.15,0.85],verbose=1)
 
 mixtures = np.array([mixture_1.flatten(),mixture_2.flatten(),mixture_3.flatten()])
 unmixing_mat, _,_ = fastICA(channels_3.T)
@@ -103,3 +103,43 @@ for i in range(3):
     plt.figure()
     plt.imshow(y[i,:].reshape(mixture_1.shape),cmap='gray')
     plt.title('y for source ' + str(i))
+
+#%%    
+c_mother = [0, 2] #[0,1]
+c_foetus = 1 #2
+
+a_foetus = A_hat[:,c_foetus]
+Pi_f = 1/(np.linalg.norm(a_foetus))**2 * np.outer(a_foetus, a_foetus)
+
+def proj(Ap):
+    inv_inner = np.linalg.inv(Ap.T.dot(Ap))
+    return Ap.dot(inv_inner).dot(Ap.T)
+
+a_mother = A_hat[:, c_mother]
+Pi_m = proj(a_mother)
+
+list_Pi = [Pi_f,Pi_m]
+orth_projs = orth_projection(list_Pi)
+
+mica_mother = orth_projs[1].dot(mixtures)
+mica_foetus = orth_projs[0].dot(mixtures)
+
+plt.figure()
+plt.imshow(mica_mother[0].reshape(mixture_1.shape),cmap='gray')
+plt.title('mother')
+plt.figure()
+plt.imshow(mica_mother[1].reshape(mixture_1.shape),cmap='gray')
+plt.title('mother')
+plt.figure()
+plt.imshow(mica_mother[2].reshape(mixture_1.shape),cmap='gray')
+plt.title('mother')
+
+plt.figure()
+plt.imshow(mica_foetus[0].reshape(mixture_1.shape),cmap='gray')
+plt.title('foetus')
+plt.figure()
+plt.imshow(mica_foetus[1].reshape(mixture_1.shape),cmap='gray')
+plt.title('foetus')
+plt.figure()
+plt.imshow(mica_foetus[2].reshape(mixture_1.shape),cmap='gray')
+plt.title('foetus')
