@@ -95,8 +95,8 @@ mixture_2 = Image(paths=paths).mix_images(weights=[0.6,0.4],verbose=1)
 mixture_3 = Image(paths=paths).mix_images(weights=[0.15,0.85],verbose=1)
 
 mixtures = np.array([mixture_1.flatten(),mixture_2.flatten(),mixture_3.flatten()])
-#unmixing_mat, _,_ = fastICA(mixtures.T)
-unmixing_mat = np.asarray(jadeR(mixtures))
+unmixing_mat, _,_ = fastICA(mixtures.T)
+#unmixing_mat = np.asarray(jadeR(mixtures))
 A_hat = np.linalg.inv(unmixing_mat)
 
 y = np.dot(unmixing_mat,mixtures)
