@@ -107,12 +107,12 @@ import cv2
 
 mixture_1 = cv2.imread("../data/image/blend1.png", 0)
 mixture_2 = cv2.imread("../data/image/blend2.png", 0)
-mixtures = np.array([mixture_1.flatten(),mixture_2.flatten(),])
+mixtures = np.array([mixture_1.flatten(),mixture_2.flatten()])
 
-unmixing_mat, _,_ = fastICA(mixtures.T)
+unmixing_mat = np.asarray(jadeR(mixtures))
 A_hat = np.linalg.inv(unmixing_mat)
 #%%    
-c_mother = [0, 2] #[0,1]
+c_mother = [0] #[0,1]
 c_foetus = 1 #2
 
 a_foetus = A_hat[:,c_foetus]
@@ -137,9 +137,9 @@ plt.title('mother')
 plt.figure()
 plt.imshow(mica_mother[1].reshape(mixture_1.shape),cmap='gray')
 plt.title('mother')
-plt.figure()
-plt.imshow(mica_mother[2].reshape(mixture_1.shape),cmap='gray')
-plt.title('mother')
+#plt.figure()
+#plt.imshow(mica_mother[2].reshape(mixture_1.shape),cmap='gray')
+#plt.title('mother')
 
 plt.figure()
 plt.imshow(mica_foetus[0].reshape(mixture_1.shape),cmap='gray')
@@ -147,6 +147,6 @@ plt.title('foetus')
 plt.figure()
 plt.imshow(mica_foetus[1].reshape(mixture_1.shape),cmap='gray')
 plt.title('foetus')
-plt.figure()
-plt.imshow(mica_foetus[2].reshape(mixture_1.shape),cmap='gray')
-plt.title('foetus')
+#plt.figure()
+#plt.imshow(mica_foetus[2].reshape(mixture_1.shape),cmap='gray')
+#plt.title('foetus')

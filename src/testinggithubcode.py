@@ -15,6 +15,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy import linalg as LA
 from data_utils import Image
+import cv2
+
 # Import the images
 
 #paths = ['../data/image/emma.jpeg','../data/image/horse.jpg']
