@@ -86,6 +86,7 @@ plt.title('foetus')
 #%% MICA on images
 
 from data_utils import Image
+
 import cv2
 
 #im_gl_path = '../data/image/'
@@ -110,10 +111,12 @@ mixture_2 = cv2.imread("../data/image/blend2.png", 0)
 mixtures = np.array([mixture_1.flatten(),mixture_2.flatten()])
 
 unmixing_mat = np.asarray(jadeR(mixtures))
-A_hat = np.linalg.inv(unmixing_mat)
+
 #%%    
+
 c_mother = [0] #[0,1]
 c_foetus = 1 #2
+
 
 a_foetus = A_hat[:,c_foetus]
 Pi_f = 1/(np.linalg.norm(a_foetus))**2 * np.outer(a_foetus, a_foetus)
