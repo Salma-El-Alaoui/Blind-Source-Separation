@@ -89,12 +89,12 @@ from data_utils import Image
 
 im_gl_path = '../data/image/'
 paths = [im_gl_path + 'lena.jpeg',im_gl_path + 'emma.jpeg']
-mixture_1 = Image(paths=paths).mix_images([0.5,0.5])
-mixture_2 = Image(paths=paths).mix_images(weights=[0.2,0.8],verbose=1)
-mixture_3 = Image(paths=paths).mix_images(weights=[0.15,0.85],verbose=1)
+mixture_1 = Image(paths=paths).mix_images([0.5,0.5])/255.
+mixture_2 = Image(paths=paths).mix_images(weights=[0.2,0.8],verbose=1)/255.
+mixture_3 = Image(paths=paths).mix_images(weights=[0.15,0.85],verbose=1)/255.
 
 mixtures = np.array([mixture_1.flatten(),mixture_2.flatten(),mixture_3.flatten()])
-unmixing_mat, _,_ = fastICA(channels_3.T)
+unmixing_mat, _,_ = fastICA(mixtures.T)
 A_hat = np.linalg.inv(unmixing_mat)
 
 y = np.dot(unmixing_mat,mixtures)
@@ -105,8 +105,8 @@ for i in range(3):
     plt.title('y for source ' + str(i))
 
 #%%    
-c_mother = [0, 2] #[0,1]
-c_foetus = 1 #2
+c_mother = [1, 2] #[0,1]
+c_foetus = 0 #2
 
 a_foetus = A_hat[:,c_foetus]
 Pi_f = 1/(np.linalg.norm(a_foetus))**2 * np.outer(a_foetus, a_foetus)
