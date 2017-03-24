@@ -50,7 +50,7 @@ class Audio:
     
 class Image:
     
-    def __init__(self,paths,shape=(225,225)):
+    def __init__(self,paths,shape=225):
         self.paths = paths
         self.shape = shape
         

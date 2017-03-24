@@ -11,6 +11,7 @@ import pandas as pd
 from jade import jadeR
 from functools import reduce
 import numpy as np
+from data_utils import Image
 from fastICA import fastICA
 #%%
 # Load ECG data
@@ -85,37 +86,40 @@ plt.title('foetus')
 
 #%% MICA on images
 
-from data_utils import Image
-
 import cv2
 
-#im_gl_path = '../data/image/'
-#paths = [im_gl_path + 'lena.jpeg',im_gl_path + 'emma.jpeg']
-#mixture_1 = Image(paths=paths).mix_images([0.5,0.5])
-#mixture_2 = Image(paths=paths).mix_images(weights=[0.2,0.8],verbose=1)
-#mixture_3 = Image(paths=paths).mix_images(weights=[0.15,0.85],verbose=1)
-#
-#mixtures = np.array([mixture_1.flatten(),mixture_2.flatten(),mixture_3.flatten()])
+im_gl_path = '../data/image/'
+paths = [im_gl_path + 'grass.jpeg',im_gl_path + 'emma.jpeg']
+mixture_1 = Image(paths=paths).mix_images([0.5,0.5])
+mixture_2 = Image(paths=paths).mix_images(weights=[0.6,0.4],verbose=1)
+mixture_3 = Image(paths=paths).mix_images(weights=[0.15,0.85],verbose=1)
+
+mixtures = np.array([mixture_1.flatten(),mixture_2.flatten(),mixture_3.flatten()])
+#unmixing_mat, _,_ = fastICA(mixtures.T)
+unmixing_mat = np.asarray(jadeR(mixtures))
+A_hat = np.linalg.inv(unmixing_mat)
+
+y = np.dot(unmixing_mat,mixtures)
+
+for i in range(3):
+    plt.figure()
+    plt.imshow(y[i,:].reshape(mixture_1.shape),cmap='gray')
+    plt.title('y for source ' + str(i))
+
+#mixture_1 = cv2.imread("../data/image/blend1.png", 0)
+#mixture_2 = cv2.imread("../data/image/blend2.png", 0)
+#mixtures = np.array([mixture_1.flatten(),mixture_2.flatten()])
+
+#unmixing_mat = np.asarray(jadeR(mixtures))
 #unmixing_mat, _,_ = fastICA(mixtures.T)
 #A_hat = np.linalg.inv(unmixing_mat)
-#
-#y = np.dot(unmixing_mat,mixtures)
-#
-#for i in range(3):
-#    plt.figure()
-#    plt.imshow(y[i,:].reshape(mixture_1.shape),cmap='gray')
-#    plt.title('y for source ' + str(i))
-
-mixture_1 = cv2.imread("../data/image/blend1.png", 0)
-mixture_2 = cv2.imread("../data/image/blend2.png", 0)
-mixtures = np.array([mixture_1.flatten(),mixture_2.flatten()])
-
-unmixing_mat = np.asarray(jadeR(mixtures))
-
 #%%    
 
-c_mother = [0] #[0,1]
-c_foetus = 1 #2
+#c_mother = [0] #[0,1]
+#c_foetus = 1 #2
+
+c_mother = [1,2]
+c_foetus = 0
 
 
 a_foetus = A_hat[:,c_foetus]
@@ -140,9 +144,9 @@ plt.title('mother')
 plt.figure()
 plt.imshow(mica_mother[1].reshape(mixture_1.shape),cmap='gray')
 plt.title('mother')
-#plt.figure()
-#plt.imshow(mica_mother[2].reshape(mixture_1.shape),cmap='gray')
-#plt.title('mother')
+plt.figure()
+plt.imshow(mica_mother[2].reshape(mixture_1.shape),cmap='gray')
+plt.title('mother')
 
 plt.figure()
 plt.imshow(mica_foetus[0].reshape(mixture_1.shape),cmap='gray')
@@ -150,6 +154,6 @@ plt.title('foetus')
 plt.figure()
 plt.imshow(mica_foetus[1].reshape(mixture_1.shape),cmap='gray')
 plt.title('foetus')
-#plt.figure()
-#plt.imshow(mica_foetus[2].reshape(mixture_1.shape),cmap='gray')
-#plt.title('foetus')
+plt.figure()
+plt.imshow(mica_foetus[2].reshape(mixture_1.shape),cmap='gray')
+plt.title('foetus')
