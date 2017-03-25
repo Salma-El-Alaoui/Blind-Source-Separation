@@ -30,7 +30,7 @@ paper Multidimensional Independent Component Analysis (1)
 
 # Defining parameters of the experiment
 algorithm = 'jade'
-experiment = 'ecg3'
+experiment = 'emma'
 verbose = False
 
 # Running experiment
@@ -106,43 +106,51 @@ if experiment == 'ecg3':
     plt.title('foetus')
 
 elif experiment == 'emma':
-    # MICA on images
-    
+    # Load data
     im_gl_path = '../data/image/'
     paths = [im_gl_path + 'grass.jpeg',im_gl_path + 'emma.jpeg']
-    mixture_1 = Image(paths=paths).mix_images([0.5,0.5])
-    mixture_2 = Image(paths=paths).mix_images(weights=[0.8,0.2],verbose=1)
-    mixture_3 = Image(paths=paths).mix_images(weights=[0.15,0.85],verbose=1)
+    
+    # Mixing images
+    mixture_1 = Image(paths=paths).mix_images([0.5,0.5])/255.
+    mixture_2 = Image(paths=paths).mix_images(weights=[0.7,0.3],verbose=1)/255.
+    mixture_3 = Image(paths=paths).mix_images(weights=[0.35,0.65],verbose=1)/255.
     
     mixtures = np.array([mixture_1.flatten(),mixture_2.flatten(),mixture_3.flatten()])
-    unmixing_mat, _,_ = fastICA(mixtures.T,n_iter=10000)
+    
+    # Performing ICA
+    if algorithm == 'jade':
+        unmixing_mat, _,_ = jadeR(mixtures)
+    elif algorithm == 'fastICA':
+        unmixing_mat, _,_ = fastICA(mixtures.T,n_iter=100)
     unmixing_mat = np.asarray(jadeR(mixtures))
     A_hat = np.linalg.inv(unmixing_mat)
-    
     y = np.dot(unmixing_mat,mixtures)
     
-    for i in range(2):
+    for i in range(3):
         plt.figure()
         plt.imshow(y[i,:].reshape(mixture_1.shape),cmap='gray')
         plt.title('y for source ' + str(i))
 
-
-    c_emma = [1,2]
-    c_grass = 0
+    if algorithm == 'jade':
+        c_emma = 0
+        c_grass = [1,2]
+    elif algorithm == 'fastICA':
+        c_grass = [1,2]
+        c_emma = 0
     
-    
+    # Orthogonal projections
     a_grass = A_hat[:,c_grass]
-    Pi_f = 1/(np.linalg.norm(a_grass))**2 * np.outer(a_grass, a_grass)
-    
     a_emma = A_hat[:, c_emma]
-    Pi_m = proj(a_emma)
+    Pi_emma = 1/(np.linalg.norm(a_emma))**2 * np.outer(a_emma, a_emma)
+    Pi_grass = proj(a_grass)
     
-    list_Pi = [Pi_f,Pi_m]
+    list_Pi = [Pi_grass,Pi_emma]
     orth_projs = orth_projection(list_Pi)
     
     mica_emma = orth_projs[1].dot(mixtures)
     mica_grass = orth_projs[0].dot(mixtures)
     
+    # Plotting final pictures
     plt.figure()
     plt.imshow(mica_emma[0].reshape(mixture_1.shape),cmap='gray')
     plt.title('emma')
