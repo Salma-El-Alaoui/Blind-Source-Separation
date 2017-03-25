@@ -37,12 +37,12 @@ def whiten(X):
     #print(np.diag(np.dot(Xtilda,np.transpose(Xtilda))))
     return Xtilda, E, D
 
-def fastICA(X):
+def fastICA(X,n_iter=10):
     X = center(X)
     X, _, _ = whiten(X)
     p, N = X.shape
     W = np.zeros((p,p))
-    iterations = 10
+    iterations = n_iter
     #number of componenets
     for i in range(p):
         #random initialisation

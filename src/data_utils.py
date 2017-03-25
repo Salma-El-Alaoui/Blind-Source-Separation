@@ -13,8 +13,8 @@ import pandas as pd
 from scipy.misc import imresize
 
 class ECG_data:
-    def __init__(self):
-        pass
+    def __init__(self,verbose=False):
+        self.verbose = verbose
     
     def load(self):
         df = pd.read_table('../data/ecg/foetal_ecg.dat', sep="\s+", header=None)
@@ -22,6 +22,10 @@ class ECG_data:
         for i in range(8):
             channel = df[i+1]
             channels.append(channel.values)
+            if self.verbose:
+                plt.figure()
+                plt.plot(channel[:500])
+                plt.title('Channel ' + str(i+1))
         return channels
         
 class Audio:
