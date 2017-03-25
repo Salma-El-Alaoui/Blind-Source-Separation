@@ -33,6 +33,7 @@ algorithm = 'jade'
 experiment = 'ecg3'
 verbose = False
 
+# Running experiment
 if experiment == 'ecg3':
     
     data = ECG_data(verbose=verbose).load()
@@ -41,7 +42,7 @@ if experiment == 'ecg3':
     if algorithm == 'jade':
         unmixing_mat = np.asarray(jadeR(channels_3))
     elif algorithm == 'fastICA':
-        unmixing_mat, _,_ = fastICA(channels_3.T)
+        unmixing_mat,_,_ = fastICA(channels_3.T)
     else:
         print('Algorithm ', algorithm, ' is not implemented: using jade')
     A_hat = np.linalg.inv(unmixing_mat)
@@ -73,8 +74,12 @@ if experiment == 'ecg3':
     #for cluster in range(n_clusters):
     #    clusters_belonging.append(np.where(y_clusters==cluster))
     
-    c_mother = [0, 2] 
-    c_foetus = 1 
+    if algorithm == 'jade':
+        c_mother = [0, 1] 
+        c_foetus = 2
+    elif algorithm == 'fastICA':
+        c_mother = [0, 2] 
+        c_foetus = 1
     
     a_foetus = A_hat[:,c_foetus]
     Pi_f = 1/(np.linalg.norm(a_foetus))**2 * np.outer(a_foetus, a_foetus)
