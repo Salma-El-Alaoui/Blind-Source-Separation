@@ -83,4 +83,3 @@ def fastISA(X, dim, red_dim, T, sub_dim, maxiter, seed):
     E(1,rdim)=.0001;
     W = real((W*W')^(-0.5))*W; % orthoganlize
 
-    
