@@ -32,10 +32,11 @@ def whiten(X):
     #print(np.dot(E, np.transpose(E)))
     #print(np.allclose(XXt, np.dot(ED, np.transpose(E))))
     R = np.dot(E, np.dot(np.linalg.inv(S), np.transpose(E)))
+    R_inv = np.dot(np.transpose(E), np.dot(S, E))
     #Whitened mixture
     Xtilda = np.dot(R,X)
     #print(np.diag(np.dot(Xtilda,np.transpose(Xtilda))))
-    return Xtilda, E, D
+    return Xtilda, R, R_inv
 
 def fastICA(X,n_iter=10):
     X = center(X)
@@ -65,3 +66,21 @@ def fastICA(X,n_iter=10):
     S = np.dot(W,X)
     A = np.linalg.inv(W)
     return W,S,A
+
+def fastISA(X, dim, red_dim, T, sub_dim, maxiter, seed):
+    
+    Xtilda, R, R_inv = whiten(X)
+    
+    block_matrix=np.zeros(dim)
+    for i in range(dim%sub_dim):
+        for j in range(sub_dim):
+            for k in range(sub_dim):
+                offset=(i-1)*sub_dim
+                block_matrix[offset+j,offset+k]=1
+                
+    W = rand(dim,red_dim) 
+    E= zeros(dim,red_dim)
+    E(1,rdim)=.0001;
+    W = real((W*W')^(-0.5))*W; % orthoganlize
+
+    

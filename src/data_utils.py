@@ -132,10 +132,32 @@ class Image:
             plt.imshow(self.mixed_image,cmap='gray')
             plt.title('Mixed image')
         return self.mixed_image
+    
+def gen_super_gauss(dim, red_dim, T, sub_dim, seed):
+    n_subspace = dim % sub_dim
+    np.random.seed(seed)
+    gaussians = np.random.standard_normal((dim,T))
+    
+    for i in range(n_subspace):
+        block = np.zeros(sub_dim, T)
+        for j in range(sub_dim):
+            block[j,:] = np.random.rand(1,T)
+        cols = (i)*sub_dim + np.arange(sub_dim)
+        gaussians[cols, :] = gaussians[cols, :]*block
+    
+    normalization_const = np.sqrt(np.sum(np.sum(gaussians**2))/(dim*T))
+    
+    super_gauss = gaussians / normalization_const
+    
+    A = np.random.rand(dim)
+    X = np.dot(A,super_gauss)
+    
+    return  A, X, super_gauss
             
         
         
 if __name__ == '__main__':
+
     data_type = 'audio'
     
     if data_type == 'image':
@@ -149,3 +171,13 @@ if __name__ == '__main__':
         audio_paths = [audio_gl_path + 'bach.wav',audio_gl_path + 'dream.wav']
         mixed_track = Audio(audio_paths).mix_tracks()
         wavfile.write(audio_gl_path + 'mix1.wav',rate=44100,data=mixed_track/100.)
+    
+    elif data_type == 'test':
+        im_gl_path = '../data/image/'
+        im_paths = [im_gl_path + 'lena.jpeg',im_gl_path + 'emma.jpeg']
+        weights = [0.5,1.3]
+        mixed_image = Image(im_paths).mix_images(weights=weights,verbose=2)
+        print(gen_super_gauss(4,3,100,2,10))
+
+    
+
