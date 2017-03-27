@@ -149,7 +149,7 @@ def gen_super_gauss(dim, red_dim, T, sub_dim, seed):
     
     super_gauss = gaussians / normalization_const
     
-    A = np.random.rand(dim)
+    A = np.random.rand(dim,dim)
     X = np.dot(A,super_gauss)
     
     return  A, X, super_gauss
@@ -158,7 +158,7 @@ def gen_super_gauss(dim, red_dim, T, sub_dim, seed):
         
 if __name__ == '__main__':
 
-    data_type = 'audio'
+    data_type = 'image'
     
     if data_type == 'image':
         im_gl_path = '../data/image/'

@@ -150,8 +150,10 @@ def power_minus_3_2(M):
     return ret
 
 def fastISA(X, dim, red_dim, T, sub_dim, maxiter, seed):
+     
+    X_whitened, R, R_inv = whiten(X,red_dim = red_dim, zca = False)
     
-    X_whitened, R, R_inv = whiten(X)
+    X= X_whitened
     
     block_matrix=np.zeros((dim,dim))
     for i in range(dim//sub_dim):
@@ -169,9 +171,15 @@ def fastISA(X, dim, red_dim, T, sub_dim, maxiter, seed):
         block_subspace = block_matrix.dot(s_square)
         
         gamma = 0.1
-        g =  power_minus_half(gamma + block_subspace)
-        g_prime = -1/2.* power_minus_3_2(gamma + block_subspace)
-        W = (s*g).dot(X.T)/T - W*(np.mean((g+2*g_prime*s_square), axis=1)).T.dot(np.ones(1,W.shape[1]))
+        g =  (gamma + block_subspace)**(-1/2)
+        g_prime = -1/2.* (gamma + block_subspace)**(-3/2)
+        men = np.mean((g+2*g_prime*s_square),axis = 1)
+        men = men.reshape((len(men),1))
+        print(men.shape)
+        print(W.shape)
+        print(np.ones((1,W.shape[1])).shape)
+        print("pouet ", (men.dot(np.ones((1,W.shape[1])))).shape)
+        W = (s*g).dot(X.T)/T - W*(men.dot(np.ones((1,W.shape[1]))))
         
         W = orthogonalize(W)
         
@@ -182,6 +190,10 @@ def fastISA(X, dim, red_dim, T, sub_dim, maxiter, seed):
 #%%
 from data_utils import gen_super_gauss
 
-X = gen_super_gauss(15, 10, 50, 5, 5)
-fastISA(X, 15, 10, 50, 5, 3, 5)
+A, X, super_gauss = gen_super_gauss(15, 15, 50, 5, 5)
+W,S = fastISA(X, 15, 15, 50, 5, 15, 5)
+
+W_true = np.linalg.inv(A)
+
+print(W_true-W)
 
