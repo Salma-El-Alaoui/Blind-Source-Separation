@@ -34,22 +34,55 @@ class Audio:
     Not tested, probably buggy
     """
     
-    def __init__(self,paths):
+    def __init__(self,paths,verbose=True):
         self.paths = paths
+        self.rates = []
+        self.verbose = verbose
         
     def _load_tracks(self):
         tracks = []
+        lengths = []
         for path in self.paths:
-            tracks.append(wavfile.read(path))
-        self.tracks = tracks
+            rate, data = wavfile.read(path)
+            self.rates.append(rate)
+            tracks.append(data)
+            lengths.append(len(data))
+        min_size = min(lengths)
+        sub_tracks = []
+        for track in tracks:
+            sub_tracks.append(track[:min_size])
+        self.tracks = sub_tracks
+        
+        if self.verbose:
+            for i,track in enumerate(tracks):
+                plt.figure()
+                plt.plot(track)
+                plt.title('Track '+str(i))
+                plt.xlim(0,1000)
+        
+        #wavfile.write('test.wav',rate=44100,data=tracks[0]/2.)
+        #wavfile.write('test2.wav',rate=44100,data=tracks[1]/2.)
+        return self
     
     def mix_tracks(self,weights=None):
-        self.load_tracks()
+        self._load_tracks()
         if weights:
-            pass
+            mixed_track = np.zeros(self.tracks[0].shape)
+            for i,track in enumerate(self.tracks):
+                mixed_track += weights[i] * track
+            self.mixed_track = mixed_track / np.array(weights).sum()
         else:
-            self.mixed_track = self.tracks.mean()
-            return self.mixed_track
+            mixed_track = np.zeros(self.tracks[0].shape)
+            for track in self.tracks:
+                mixed_track += track
+            self.mixed_track = mixed_track / len(self.tracks)
+            
+        if self.verbose:
+            plt.figure()
+            plt.plot(track)
+            plt.title('Mixed track')
+            plt.xlim(0,100000)
+        return self.mixed_track
     
     
 class Image:
@@ -124,10 +157,27 @@ def gen_super_gauss(dim, red_dim, T, sub_dim, seed):
         
         
 if __name__ == '__main__':
-    im_gl_path = '../data/image/'
-    im_paths = [im_gl_path + 'lena.jpeg',im_gl_path + 'emma.jpeg']
-    weights = [0.5,1.3]
-    mixed_image = Image(im_paths).mix_images(weights=weights,verbose=2)
-    print(gen_super_gauss(4,3,100,2,10))
+
+    data_type = 'audio'
+    
+    if data_type == 'image':
+        im_gl_path = '../data/image/'
+        im_paths = [im_gl_path + 'lena.jpeg',im_gl_path + 'emma.jpeg']
+        weights = [0.5,1.3]
+        mixed_image = Image(im_paths).mix_images(weights=weights,verbose=2)
+    
+    elif data_type == 'audio':
+        audio_gl_path = '../data/audio/'
+        audio_paths = [audio_gl_path + 'bach.wav',audio_gl_path + 'dream.wav']
+        mixed_track = Audio(audio_paths).mix_tracks()
+        wavfile.write(audio_gl_path + 'mix1.wav',rate=44100,data=mixed_track/100.)
+    
+    elif data_type == 'test':
+        im_gl_path = '../data/image/'
+        im_paths = [im_gl_path + 'lena.jpeg',im_gl_path + 'emma.jpeg']
+        weights = [0.5,1.3]
+        mixed_image = Image(im_paths).mix_images(weights=weights,verbose=2)
+        print(gen_super_gauss(4,3,100,2,10))
 
     
+
