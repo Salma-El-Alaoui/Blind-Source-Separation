@@ -24,31 +24,37 @@ def whiten(X,red_dim=None):
     #np.allclose(X, np.dot(U, np.dot(S, V)))
     Yt = np.transpose(Y)
     YtY = np.dot(Yt, Y)
-    
+    print('V ',V.shape)
     
     if red_dim == None:
         S = np.diag(s)
         # Diagonal matrix of eigen values of XXt
-        D = S**2
+        #D = S**2
         # Orthogonal matrix of eigen vectors of XXt
         E = np.transpose(V)
+        print('E ', E.shape)
 
     
     else:
         order_eigen  = np.argsort(-s)
         s_ordered_red = s[order_eigen][:red_dim]
         # Diagonal matrix of eigen values of XXt (first red_dim eigenvalues)
-        D = (np.diag(s))**2
+        S = np.diag(s_ordered_red)
+        #D = S**2
         # Orthogonal matrix of eigen vectors of XXt
         V_ordered_red = V[order_eigen][:red_dim]
+        print('v ord red ', V_ordered_red.shape)
         E = np.transpose(V_ordered_red)
+        print('E ', E.shape)
         
-    ED = np.dot(E,D)
+
     R = np.dot(E, np.dot(np.linalg.inv(S), np.transpose(E)))
-    R_inv = np.dot(np.transpose(E), np.dot(S, E))
-    
+    print('R ', R.shape)
+    R_inv = np.linalg.inv(R) #np.dot(np.transpose(E), np.dot(S, E))
+    print('Rinv ', R_inv.shape)
     # Whitened mixture
     Xtilda = np.dot(R,X)
+    print('x tild a ', Xtilda.shape)
     return Xtilda, R, R_inv
         
 def fastICA(X,n_iter=10):
@@ -109,6 +115,6 @@ def fastISA(X, dim, red_dim, T, sub_dim, maxiter, seed):
         g =  (gamma + block_subspace)**(-1/2.)
         g_prime = -1/2.*(gamma + block_subspace)**(-3/2.)
         
-        W = 
+        #W = 
 
 
