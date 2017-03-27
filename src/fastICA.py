@@ -89,16 +89,17 @@ def whiten(X,red_dim=None,zca=True):
 #        V_ordered_red = V[order_eigen][:red_dim]
 #        E = np.transpose(V_ordered_red)``
         
-        X_t = normalize(X_t)
+        X_t = X_t/np.sqrt(X_t.shape[1])
 
         covarianceMatrix = X_t.dot(X_t.T)
         s,E = np.linalg.eig(covarianceMatrix)
+        s = s.real
+        E = E.real
         order_eigen  = np.argsort(-s)
         s_ord_red = s[order_eigen][:red_dim]
         E_ord_red = (E.T[order_eigen][:red_dim]).T
         E = E_ord_red
         S = (np.diag(s_ord_red**(-0.5)))
-        print(S)
         R = np.dot(S,E.T)
         R_inv = np.dot(E,S)
         X_whitened = np.dot(R,X_t)
