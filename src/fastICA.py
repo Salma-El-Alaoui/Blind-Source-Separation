@@ -170,8 +170,17 @@ def fastISA(X, dim, red_dim, T, sub_dim, maxiter, seed):
         gamma = 0.1
         g =  power_minus_half(gamma + block_subspace)
         g_prime = -1/2.* power_minus_3_2(gamma + block_subspace)
-        W = 0
-        return False
+        W = (s*g).dot(X.T)/T - W*(np.mean((g+2*g_prime*s_square), axis=1)).T.dot(np.ones(1,W.shape[1]))
+        
+        W = orthogonalize(W)
+        
+    S = np.dot(W,X)
+    
+    return W,S
 
+#%%
+from data_utils import gen_super_gauss
 
+X = gen_super_gauss(15, 10, 50, 5, 5)
+fastISA(X, 15, 10, 50, 5, 3, 5)
 
