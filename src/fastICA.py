@@ -10,34 +10,101 @@ Created on Wed Mar 22 14:11:50 2017
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy
+from sklearn.preprocessing import normalize
+
 
 #shift the column-wise mean to 0
 def center(X):
     centered =  X - np.mean(X, axis =0)
     return np.transpose(centered)
 
-def whiten(X, red_dim = None):
-    Y = np.transpose(X)
-    N, p = Y.shape
-    Y= Y/np.sqrt(p)
-    U, s, V = np.linalg.svd(Y, full_matrices=False)
-    S= np.diag(s)
-    #np.allclose(X, np.dot(U, np.dot(S, V)))
-    Yt = np.transpose(Y)
-    YtY = np.dot(Yt, Y)
-    #diagonal matrix of eigen values of XXt:
-    D = S**2
-    #orthogonal matrix of eigen vectors of XXt:
-    E = np.transpose(V)
-    ED = np.dot(E,D)
-    #print(np.dot(E, np.transpose(E)))
-    #print(np.allclose(XXt, np.dot(ED, np.transpose(E))))
-    R = np.dot(E, np.dot(np.linalg.inv(S), np.transpose(E)))
-    R_inv = np.dot(np.transpose(E), np.dot(S, E))
-    #Whitened mixture
-    Xtilda = np.dot(R,X)
-    #print(np.diag(np.dot(Xtilda,np.transpose(Xtilda))))
-    return Xtilda, R, R_inv
+#def whiten(X, red_dim = None):
+#    Y = np.transpose(X)
+#    N, p = Y.shape
+#    Y= Y/np.sqrt(p)
+#    U, s, V = np.linalg.svd(Y, full_matrices=False)
+#    S= np.diag(s)
+#    #np.allclose(X, np.dot(U, np.dot(S, V)))
+#    Yt = np.transpose(Y)
+#    YtY = np.dot(Yt, Y)
+#    #diagonal matrix of eigen values of XXt:
+#    D = S**2
+#    #orthogonal matrix of eigen vectors of XXt:
+#    E = np.transpose(V)
+#    ED = np.dot(E,D)
+#    #print(np.dot(E, np.transpose(E)))
+#    #print(np.allclose(XXt, np.dot(ED, np.transpose(E))))
+#    R = np.dot(E, np.dot(np.linalg.inv(S), np.transpose(E)))
+#    R_inv = np.dot(np.transpose(E), np.dot(S, E))
+#    #Whitened mixture
+#    Xtilda = np.dot(R,X)
+#    #print(np.diag(np.dot(Xtilda,np.transpose(Xtilda))))
+#    return Xtilda, R, R_inv
+
+
+def whiten(X,red_dim=None,zca=True):
+    
+    if zca:
+        Y = np.transpose(X)
+        N, p = Y.shape
+        Y = Y/np.sqrt(N-1)
+        U, s, V = np.linalg.svd(Y, full_matrices=False) 
+        #np.allclose(X, np.dot(U, np.dot(S, V)))
+        #Yt = np.transpose(Y)
+        #YtY = np.dot(Yt, Y)
+        
+        if red_dim == None:
+            S = np.diag(s)
+            # Diagonal matrix of eigen values of XXt
+            #D = S**2
+            # Orthogonal matrix of eigen vectors of XXt
+            E = np.transpose(V)
+    
+        
+        else:
+            order_eigen  = np.argsort(-s)
+            s_ordered_red = s[order_eigen][:red_dim]
+            # Diagonal matrix of eigen values of XXt (first red_dim eigenvalues)
+            S = np.diag(s_ordered_red)
+            #D = S**2
+            # Orthogonal matrix of eigen vectors of XXt
+            V_ordered_red = V[order_eigen][:red_dim]
+            E = np.transpose(V_ordered_red)
+            
+    
+        R = np.dot(E, np.dot(np.linalg.inv(S), np.transpose(E)))
+        R_inv = np.linalg.inv(R) #np.dot(np.transpose(E), np.dot(S, E))
+        # Whitened mixture
+        X_whitened = np.dot(R,X)
+    
+    else:
+        X_t = X# because centering transposes the result
+#        X_t_n = normalize(X_t)/np.sqrt(X_t.shape[1])
+#        U, s, V = np.linalg.svd(X_t_n, full_matrices=False) 
+#        order_eigen  = np.argsort(-s)
+#        s_ordered_red = s[order_eigen][:red_dim]
+#        # Diagonal matrix of eigen values of XXt (first red_dim eigenvalues)
+#        S = np.diag(s_ordered_red)
+#        # Orthogonal matrix of eigen vectors of XXt
+#        V_ordered_red = V[order_eigen][:red_dim]
+#        E = np.transpose(V_ordered_red)``
+        
+        X_t = normalize(X_t)
+
+        covarianceMatrix = X_t.dot(X_t.T)
+        s,E = np.linalg.eig(covarianceMatrix)
+        order_eigen  = np.argsort(-s)
+        s_ord_red = s[order_eigen][:red_dim]
+        E_ord_red = (E.T[order_eigen][:red_dim]).T
+        E = E_ord_red
+        S = (np.diag(s_ord_red**(-0.5)))
+        print(S)
+        R = np.dot(S,E.T)
+        R_inv = np.dot(E,S)
+        X_whitened = np.dot(R,X_t)
+        
+    return X_whitened, R, R_inv
+
 
 def fastICA(X,n_iter=10):
     X = center(X)
@@ -83,7 +150,7 @@ def power_minus_3_2(M):
 
 def fastISA(X, dim, red_dim, T, sub_dim, maxiter, seed):
     
-    Xtilda, R, R_inv = whiten(X)
+    X_whitened, R, R_inv = whiten(X)
     
     block_matrix=np.zeros((dim,dim))
     for i in range(dim//sub_dim):
@@ -103,9 +170,8 @@ def fastISA(X, dim, red_dim, T, sub_dim, maxiter, seed):
         gamma = 0.1
         g =  power_minus_half(gamma + block_subspace)
         g_prime = -1/2.* power_minus_3_2(gamma + block_subspace)
-        
         W = 0
         return False
 
 
-    
+
