@@ -30,7 +30,7 @@ paper Multidimensional Independent Component Analysis (1)
 
 # Defining parameters of the experiment
 algorithm = 'jade'
-experiment = 'emma'
+experiment = 'party'
 verbose = False
 
 # Running experiment
@@ -170,3 +170,9 @@ elif experiment == 'emma':
     plt.figure()
     plt.imshow(mica_grass[2].reshape(mixture_1.shape),cmap='gray')
     plt.title('grass')
+    
+elif experiment == 'party':
+    # Load data
+    audio_gl_path = '../data/audio/'
+    paths = [audio_gl_path + 'mix1.wav',audio_gl_path + 'mix2.wav']
+    
