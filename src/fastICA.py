@@ -9,6 +9,7 @@ Created on Wed Mar 22 14:11:50 2017
 
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy
 
 #shift the column-wise mean to 0
 def center(X):
@@ -18,7 +19,7 @@ def center(X):
 def whiten(X, red_dim = None):
     Y = np.transpose(X)
     N, p = Y.shape
-    Y= Y/np.sqrt(N-1)
+    Y= Y/np.sqrt(p)
     U, s, V = np.linalg.svd(Y, full_matrices=False)
     S= np.diag(s)
     #np.allclose(X, np.dot(U, np.dot(S, V)))
@@ -71,13 +72,20 @@ def orthogonalize(W):
     M = np.dot(W,W.T)
     ret = np.real(np.linalg.inv(scipy.linalg.sqrtm(M))).dot(W)
     return ret
-    
+
+def power_minus_half(M):
+    ret = np.real(np.linalg.inv(scipy.linalg.sqrtm(M)))
+    return ret
+
+def power_minus_3_2(M):
+    ret = np.dot(np.linalg.inv(M),power_minus_half(M))
+    return ret
 
 def fastISA(X, dim, red_dim, T, sub_dim, maxiter, seed):
     
     Xtilda, R, R_inv = whiten(X)
     
-    block_matrix=np.zeros(dim)
+    block_matrix=np.zeros((dim,dim))
     for i in range(dim//sub_dim):
         begin_block=(i-1)*sub_dim
         for j in range(sub_dim):
@@ -93,10 +101,11 @@ def fastISA(X, dim, red_dim, T, sub_dim, maxiter, seed):
         block_subspace = block_matrix.dot(s_square)
         
         gamma = 0.1
-        g =  (gamma + block_subspace)**(-1/2.)
-        g_prime = -1/2.*(gamma + block_subspace)**(-3/2.)
+        g =  power_minus_half(gamma + block_subspace)
+        g_prime = -1/2.* power_minus_3_2(gamma + block_subspace)
         
-        W = 
+        W = 0
+        return False
 
 
     
