@@ -15,29 +15,42 @@ def center(X):
     centered =  X - np.mean(X, axis =0)
     return np.transpose(centered)
 
-def whiten(X, red_dim = None):
+def whiten(X,red_dim=None):
+    
     Y = np.transpose(X)
     N, p = Y.shape
-    Y= Y/np.sqrt(N-1)
-    U, s, V = np.linalg.svd(Y, full_matrices=False)
-    S= np.diag(s)
+    Y = Y/np.sqrt(N-1)
+    U, s, V = np.linalg.svd(Y, full_matrices=False) 
     #np.allclose(X, np.dot(U, np.dot(S, V)))
     Yt = np.transpose(Y)
     YtY = np.dot(Yt, Y)
-    #diagonal matrix of eigen values of XXt:
-    D = S**2
-    #orthogonal matrix of eigen vectors of XXt:
-    E = np.transpose(V)
+    
+    
+    if red_dim == None:
+        S = np.diag(s)
+        # Diagonal matrix of eigen values of XXt
+        D = S**2
+        # Orthogonal matrix of eigen vectors of XXt
+        E = np.transpose(V)
+
+    
+    else:
+        order_eigen  = np.argsort(-s)
+        s_ordered_red = s[order_eigen][:red_dim]
+        # Diagonal matrix of eigen values of XXt (first red_dim eigenvalues)
+        D = (np.diag(s))**2
+        # Orthogonal matrix of eigen vectors of XXt
+        V_ordered_red = V[order_eigen][:red_dim]
+        E = np.transpose(V_ordered_red)
+        
     ED = np.dot(E,D)
-    #print(np.dot(E, np.transpose(E)))
-    #print(np.allclose(XXt, np.dot(ED, np.transpose(E))))
     R = np.dot(E, np.dot(np.linalg.inv(S), np.transpose(E)))
     R_inv = np.dot(np.transpose(E), np.dot(S, E))
-    #Whitened mixture
+    
+    # Whitened mixture
     Xtilda = np.dot(R,X)
-    #print(np.diag(np.dot(Xtilda,np.transpose(Xtilda))))
     return Xtilda, R, R_inv
-
+        
 def fastICA(X,n_iter=10):
     X = center(X)
     X, _, _ = whiten(X)
