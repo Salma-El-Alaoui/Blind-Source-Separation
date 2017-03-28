@@ -116,7 +116,7 @@ def fastISA(X, dim, red_dim, T, sub_dim, maxiter, seed, A_init):
             for k in range(sub_dim):
                 block_matrix[begin_block+j,begin_block+k] = 1
                 
-    W = np.linalg.inv(np.dot(R, A_init)) #+  np.random.multivariate_normal(mean=np.zeros(dim), cov=np.eye(dim)/dim, size = dim)
+    W = np.linalg.inv(np.dot(R, A_init)) +  np.random.multivariate_normal(mean=np.zeros(dim), cov=np.eye(dim)/dim, size = dim)
     W_orth = orthogonalize(W.copy())
     W = W_orth.copy()
     for i in range(maxiter):
@@ -138,9 +138,12 @@ def fastISA(X, dim, red_dim, T, sub_dim, maxiter, seed, A_init):
 #%%
 from data_utils import gen_super_gauss
 
-A, X, super_gauss = gen_super_gauss(20, 20, 1000, 4, 5)
+#A = scipy.io.loadmat("A.mat")['M']
+#X = scipy.io.loadmat("X.mat")['X']
+#super_gauss = scipy.io.loadmat("supergauss.mat")['S']
+A, X, super_gauss = gen_super_gauss(dim=20, red_dim=20, T=10000, sub_dim=4, seed=5)
 W_true = np.linalg.inv(A)
-W,S,R = fastISA(X=X, dim=20, red_dim=20, T=10000, sub_dim=4, maxiter=100, seed=5, A_init=A)
+W,S,R = fastISA(X=X, dim=20, red_dim=20, T=10000, sub_dim=4, maxiter=15, seed=5, A_init=A)
 print(W_true-W)
 plt.figure()
 plt.imshow(np.dot(np.dot(W, R), A), cmap='gray', vmin=-1, vmax=1)

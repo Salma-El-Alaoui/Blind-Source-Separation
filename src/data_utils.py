@@ -134,12 +134,13 @@ class Image:
         return self.mixed_image
     
 def gen_super_gauss(dim, red_dim, T, sub_dim, seed):
-    n_subspace = dim % sub_dim
+    n_subspace = int(np.floor(dim / sub_dim))
+    
     np.random.seed(seed)
     gaussians = np.random.standard_normal((dim,T))
     
     for i in range(n_subspace):
-        block = np.zeros(sub_dim, T)
+        block = np.ones((sub_dim, T))
         for j in range(sub_dim):
             block[j,:] = np.random.rand(1,T)
         cols = (i)*sub_dim + np.arange(sub_dim)
