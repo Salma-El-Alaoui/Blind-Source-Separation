@@ -150,6 +150,7 @@ def gen_super_gauss(dim, red_dim, T, sub_dim, seed):
     super_gauss = gaussians / normalization_const
     
     A = np.random.rand(dim,dim)
+    #A = np.arange(dim**2).reshape(dim,dim)
     X = np.dot(A,super_gauss)
     
     return  A, X, super_gauss

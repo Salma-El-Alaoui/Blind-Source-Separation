@@ -78,16 +78,7 @@ def whiten(X,red_dim=None,zca=True):
         X_whitened = np.dot(R,X)
     
     else:
-        X_t = X# because centering transposes the result
-#        X_t_n = normalize(X_t)/np.sqrt(X_t.shape[1])
-#        U, s, V = np.linalg.svd(X_t_n, full_matrices=False) 
-#        order_eigen  = np.argsort(-s)
-#        s_ordered_red = s[order_eigen][:red_dim]
-#        # Diagonal matrix of eigen values of XXt (first red_dim eigenvalues)
-#        S = np.diag(s_ordered_red)
-#        # Orthogonal matrix of eigen vectors of XXt
-#        V_ordered_red = V[order_eigen][:red_dim]
-#        E = np.transpose(V_ordered_red)``
+        X_t = X
         
         X_t = X_t/np.sqrt(X_t.shape[1])
 
@@ -151,38 +142,34 @@ def power_minus_3_2(M):
 
 def fastISA(X, dim, red_dim, T, sub_dim, maxiter, seed):
      
-    X_whitened, R, R_inv = whiten(X,red_dim = red_dim, zca = False)
+    X_whitened, R, R_inv = whiten(X,red_dim=red_dim,zca=False)
     
-    X= X_whitened
-    
-    block_matrix=np.zeros((dim,dim))
+    X = X_whitened.copy()
+    block_matrix = np.zeros((dim,dim))
     for i in range(dim//sub_dim):
-        begin_block=(i-1)*sub_dim
+        begin_block = i*sub_dim 
         for j in range(sub_dim):
             for k in range(sub_dim):
-                block_matrix[begin_block+j,begin_block+k]=1
+                block_matrix[begin_block+j,begin_block+k] = 1
                 
     W = np.random.rand(dim,red_dim) 
-    W = orthogonalize(W)
-    
+    W_orth = orthogonalize(W.copy())
+    W = W_orth.copy()
     for i in range(maxiter):
-        s = np.dot(W,X) 
+        s = np.dot(W,X)
         s_square = s**2
         block_subspace = block_matrix.dot(s_square)
-        
         gamma = 0.1
-        g =  (gamma + block_subspace)**(-1/2)
-        g_prime = -1/2.* (gamma + block_subspace)**(-3/2)
-        men = np.mean((g+2*g_prime*s_square),axis = 1)
+        g =  (gamma + block_subspace)**(-1/2.)
+        g_prime = -1/2.* (gamma + block_subspace)**(-3/2.)
+        men = np.mean((g + 2.*g_prime*s_square),axis = 1)
         men = men.reshape((len(men),1))
-        print(men.shape)
-        print(W.shape)
-        print(np.ones((1,W.shape[1])).shape)
-        print("pouet ", (men.dot(np.ones((1,W.shape[1])))).shape)
-        W = (s*g).dot(X.T)/T - W*(men.dot(np.ones((1,W.shape[1]))))
-        
-        W = orthogonalize(W)
-        
+        plt.figure()
+        plt.imshow(men,cmap='gray')
+
+        W_new = (s*g).dot(X.T)/float(T) - W*(men.dot(np.ones((1,W.shape[1]))))
+        W_orth = orthogonalize(W_new.copy())
+        W = W_orth.copy()
     S = np.dot(W,X)
     
     return W,S
@@ -191,9 +178,11 @@ def fastISA(X, dim, red_dim, T, sub_dim, maxiter, seed):
 from data_utils import gen_super_gauss
 
 A, X, super_gauss = gen_super_gauss(15, 15, 50, 5, 5)
-W,S = fastISA(X, 15, 15, 50, 5, 15, 5)
+W,S = fastISA(X, 15, 15, 50, 5, 20, 5)
 
 W_true = np.linalg.inv(A)
 
 print(W_true-W)
+plt.figure()
+plt.imshow(A.T.dot(W),cmap='gray')
 
