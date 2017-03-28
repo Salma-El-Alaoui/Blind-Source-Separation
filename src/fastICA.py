@@ -140,7 +140,7 @@ def power_minus_3_2(M):
     ret = np.dot(np.linalg.inv(M),power_minus_half(M))
     return ret
 
-def fastISA(X, dim, red_dim, T, sub_dim, maxiter, seed):
+def fastISA(X, dim, red_dim, T, sub_dim, maxiter, seed, W_init):
      
     X_whitened, R, R_inv = whiten(X,red_dim=red_dim,zca=False)
     
@@ -152,7 +152,8 @@ def fastISA(X, dim, red_dim, T, sub_dim, maxiter, seed):
             for k in range(sub_dim):
                 block_matrix[begin_block+j,begin_block+k] = 1
                 
-    W = np.random.rand(dim,red_dim) 
+    W = W_init +  np.random.multivariate_normal(mean=np.zeros(dim), cov=np.eye(dim))
+    print(np.random.multivariate_normal(mean=np.zeros(dim), cov=0.001*np.eye(dim)))
     W_orth = orthogonalize(W.copy())
     W = W_orth.copy()
     for i in range(maxiter):
@@ -178,10 +179,8 @@ def fastISA(X, dim, red_dim, T, sub_dim, maxiter, seed):
 from data_utils import gen_super_gauss
 
 A, X, super_gauss = gen_super_gauss(15, 15, 50, 5, 5)
-W,S = fastISA(X, 15, 15, 50, 5, 20, 5)
-
 W_true = np.linalg.inv(A)
-
+W,S = fastISA(X, 15, 15, 50, 5, 20, 5, W_true)
 print(W_true-W)
 plt.figure()
 plt.imshow(A.T.dot(W),cmap='gray')
