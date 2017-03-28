@@ -13,76 +13,40 @@ import scipy
 from sklearn.preprocessing import normalize
 
 
-#shift the column-wise mean to 0
 def center(X):
-    centered =  X - np.mean(X, axis =0)
-    return np.transpose(centered)
+    """
+     shift the row-wise mean to 0
+     
+    """
+    centered =  X - np.mean(X, axis=1)
+    return centered
 
-#def whiten(X, red_dim = None):
-#    Y = np.transpose(X)
-#    N, p = Y.shape
-#    Y= Y/np.sqrt(p)
-#    U, s, V = np.linalg.svd(Y, full_matrices=False)
-#    S= np.diag(s)
-#    #np.allclose(X, np.dot(U, np.dot(S, V)))
-#    Yt = np.transpose(Y)
-#    YtY = np.dot(Yt, Y)
-#    #diagonal matrix of eigen values of XXt:
-#    D = S**2
-#    #orthogonal matrix of eigen vectors of XXt:
-#    E = np.transpose(V)
-#    ED = np.dot(E,D)
-#    #print(np.dot(E, np.transpose(E)))
-#    #print(np.allclose(XXt, np.dot(ED, np.transpose(E))))
-#    R = np.dot(E, np.dot(np.linalg.inv(S), np.transpose(E)))
-#    R_inv = np.dot(np.transpose(E), np.dot(S, E))
-#    #Whitened mixture
-#    Xtilda = np.dot(R,X)
-#    #print(np.diag(np.dot(Xtilda,np.transpose(Xtilda))))
-#    return Xtilda, R, R_inv
-
-
-def whiten(X,red_dim=None,zca=True):
     
+def whiten(X, zca=True, red_dim=None):  
     if zca:
+        # equivalent to taking U instead of V
         Y = np.transpose(X)
         N, p = Y.shape
         Y = Y/np.sqrt(N-1)
-        U, s, V = np.linalg.svd(Y, full_matrices=False) 
-        #np.allclose(X, np.dot(U, np.dot(S, V)))
-        #Yt = np.transpose(Y)
-        #YtY = np.dot(Yt, Y)
+        U, s, V = np.linalg.svd(Y, full_matrices=False)
         
-        if red_dim == None:
+        if not red_dim:
             S = np.diag(s)
-            # Diagonal matrix of eigen values of XXt
-            #D = S**2
-            # Orthogonal matrix of eigen vectors of XXt
-            E = np.transpose(V)
-    
-        
+            E = np.transpose(V)  
         else:
             order_eigen  = np.argsort(-s)
             s_ordered_red = s[order_eigen][:red_dim]
-            # Diagonal matrix of eigen values of XXt (first red_dim eigenvalues)
             S = np.diag(s_ordered_red)
-            #D = S**2
-            # Orthogonal matrix of eigen vectors of XXt
             V_ordered_red = V[order_eigen][:red_dim]
             E = np.transpose(V_ordered_red)
             
-    
         R = np.dot(E, np.dot(np.linalg.inv(S), np.transpose(E)))
-        R_inv = np.linalg.inv(R) #np.dot(np.transpose(E), np.dot(S, E))
-        # Whitened mixture
+        R_inv = np.linalg.inv(R)
         X_whitened = np.dot(R,X)
     
     else:
-        X_t = X
-        
-        X_t = X_t/np.sqrt(X_t.shape[1])
-
-        covarianceMatrix = X_t.dot(X_t.T)
+        X_t = X#/np.sqrt(X.shape[1])
+        covarianceMatrix = X_t.dot(X_t.T)/X.shape[1]
         s,E = np.linalg.eig(covarianceMatrix)
         s = s.real
         E = E.real
@@ -140,9 +104,9 @@ def power_minus_3_2(M):
     ret = np.dot(np.linalg.inv(M),power_minus_half(M))
     return ret
 
-def fastISA(X, dim, red_dim, T, sub_dim, maxiter, seed, W_init):
+def fastISA(X, dim, red_dim, T, sub_dim, maxiter, seed, A_init):
      
-    X_whitened, R, R_inv = whiten(X,red_dim=red_dim,zca=False)
+    X_whitened, R, R_inv = whiten(X, zca=False, red_dim=red_dim)
     
     X = X_whitened.copy()
     block_matrix = np.zeros((dim,dim))
@@ -152,8 +116,7 @@ def fastISA(X, dim, red_dim, T, sub_dim, maxiter, seed, W_init):
             for k in range(sub_dim):
                 block_matrix[begin_block+j,begin_block+k] = 1
                 
-    W = W_init +  np.random.multivariate_normal(mean=np.zeros(dim), cov=np.eye(dim))
-    print(np.random.multivariate_normal(mean=np.zeros(dim), cov=0.001*np.eye(dim)))
+    W = np.linalg.inv(np.dot(R, A_init)) +  np.random.multivariate_normal(mean=np.zeros(dim), cov=np.eye(dim))
     W_orth = orthogonalize(W.copy())
     W = W_orth.copy()
     for i in range(maxiter):
@@ -165,23 +128,20 @@ def fastISA(X, dim, red_dim, T, sub_dim, maxiter, seed, W_init):
         g_prime = -1/2.* (gamma + block_subspace)**(-3/2.)
         men = np.mean((g + 2.*g_prime*s_square),axis = 1)
         men = men.reshape((len(men),1))
-        plt.figure()
-        plt.imshow(men,cmap='gray')
-
-        W_new = (s*g).dot(X.T)/float(T) - W*(men.dot(np.ones((1,W.shape[1]))))
+        W_new = (s * g).dot(X.T)/float(T) - W *(men.dot(np.ones((1, W.shape[1]))))
         W_orth = orthogonalize(W_new.copy())
         W = W_orth.copy()
     S = np.dot(W,X)
     
-    return W,S
+    return W,S, R
 
 #%%
 from data_utils import gen_super_gauss
 
-A, X, super_gauss = gen_super_gauss(15, 15, 50, 5, 5)
+A, X, super_gauss = gen_super_gauss(40, 40, 50, 5, 5)
 W_true = np.linalg.inv(A)
-W,S = fastISA(X, 15, 15, 50, 5, 20, 5, W_true)
+W,S,R = fastISA(X, 40, 40, 50, 5, 20, 5, A)
 print(W_true-W)
 plt.figure()
-plt.imshow(A.T.dot(W),cmap='gray')
+plt.imshow(np.dot(np.dot(W, R), A),cmap='gray')
 
