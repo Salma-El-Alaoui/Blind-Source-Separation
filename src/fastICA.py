@@ -45,7 +45,7 @@ def whiten(X, zca=True, red_dim=None):
         X_whitened = np.dot(R,X)
     
     else:
-        X_t = X#/np.sqrt(X.shape[1])
+        X_t = X
         covarianceMatrix = X_t.dot(X_t.T)/X.shape[1]
         s,E = np.linalg.eig(covarianceMatrix)
         s = s.real
@@ -116,7 +116,7 @@ def fastISA(X, dim, red_dim, T, sub_dim, maxiter, seed, A_init):
             for k in range(sub_dim):
                 block_matrix[begin_block+j,begin_block+k] = 1
                 
-    W = np.linalg.inv(np.dot(R, A_init)) +  np.random.multivariate_normal(mean=np.zeros(dim), cov=np.eye(dim))
+    W = np.linalg.inv(np.dot(R, A_init)) +  np.random.multivariate_normal(mean=np.zeros(dim), cov=np.eye(dim)/dim, size=dim)
     W_orth = orthogonalize(W.copy())
     W = W_orth.copy()
     for i in range(maxiter):
@@ -140,8 +140,8 @@ from data_utils import gen_super_gauss
 
 A, X, super_gauss = gen_super_gauss(40, 40, 50, 5, 5)
 W_true = np.linalg.inv(A)
-W,S,R = fastISA(X, 40, 40, 50, 5, 20, 5, A)
+W,S,R = fastISA(X=X, dim=20, red_dim=20, T=10000, sub_dim=4, maxiter=100, seed=5, A_init=A)
 print(W_true-W)
 plt.figure()
-plt.imshow(np.dot(np.dot(W, R), A),cmap='gray')
+plt.imshow(np.dot(np.dot(W, R), A), vmin=-1, vmax=1)
 
