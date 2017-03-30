@@ -64,8 +64,9 @@ class Audio:
         #wavfile.write('test2.wav',rate=44100,data=tracks[1]/2.)
         return self
     
-    def mix_tracks(self,weights=None):
-        self._load_tracks()
+    def mix_tracks(self,weights=None,load=True):
+        if load:
+            self._load_tracks()
         if weights:
             mixed_track = np.zeros(self.tracks[0].shape)
             for i,track in enumerate(self.tracks):
@@ -95,9 +96,13 @@ class Image:
         images = []
         for path in self.paths:
             image = imread(path)
-            image_bw = imresize(image[:,:,0],(self.shape,self.shape))
+            if image.ndim==3:
+                image_bw = imresize(image[:,:,0],(self.shape,self.shape))
+            else:
+                image_bw = imresize(image,(self.shape,self.shape))
             images.append(image_bw)
         self.images = images
+        
 
     
     def mix_images(self,weights=None,verbose=2):
@@ -160,7 +165,7 @@ def gen_super_gauss(dim, red_dim, T, sub_dim, seed):
         
 if __name__ == '__main__':
 
-    data_type = 'image'
+    data_type = 'audio'
     
     if data_type == 'image':
         im_gl_path = '../data/image/'
@@ -170,9 +175,10 @@ if __name__ == '__main__':
     
     elif data_type == 'audio':
         audio_gl_path = '../data/audio/'
-        audio_paths = [audio_gl_path + 'bach.wav',audio_gl_path + 'dream.wav']
+        audio_paths = [audio_gl_path + 'LetItBe1.wav',audio_gl_path + 'LetItBe2.wav',audio_gl_path + 'LetItBe3.wav',
+                       audio_gl_path + 'Highway1.wav',audio_gl_path + 'Highway2.wav',audio_gl_path + 'Highway3.wav']
         mixed_track = Audio(audio_paths).mix_tracks()
-        wavfile.write(audio_gl_path + 'mix1.wav',rate=44100,data=mixed_track/100.)
+        wavfile.write(audio_gl_path + 'MixLibHth.wav',rate=44100,data=mixed_track)
     
     elif data_type == 'test':
         im_gl_path = '../data/image/'
