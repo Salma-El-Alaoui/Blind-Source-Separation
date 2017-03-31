@@ -61,35 +61,33 @@ def whiten(X, zca=True, red_dim=None):
     return X_whitened, R, R_inv
 
 
-def fastICA(X,n_iter=10,init=False,W_init=None):
+def fastICA(X, n_iter=10, init=False, A_init=None):
     X = center(X)
-    X, _, _ = whiten(X)
+    X, R, R_inv = whiten(X, zca=False)
     p, N = X.shape
     W = np.zeros((p,p))
     if init:
-        noise = np.random.multivariate_normal(mean=np.zeros(p), cov=np.eye(p)/p, size = p)
-        W = W_init + 0.*noise
-    iterations = n_iter
+        #noise = np.random.multivariate_normal(mean=np.zeros(p), cov=np.eye(p)/p, size = p)
+        W = np.linalg.inv(np.dot(R, A_init))
     #number of componenets
     for i in range(p):
-        #random initialisation
-        if not init:
-            W[i,:] = np.sqrt(1) * np.random.randn(p)
-        for k in range(iterations):
+        #random initialisation 
+        W[i,:] = W[i, :] + np.sqrt(1) * np.random.randn(p)
+        for k in range(n_iter):
             wtold = np.transpose(W[i,:])
             g = np.tanh(np.dot(wtold,X))
             gPrime = np.ones((1,N))- np.multiply(np.tanh(np.dot(wtold,X)), np.tanh(np.dot(wtold,X)))
             w = 1/N*np.dot(X, np.transpose(g))- np.mean(gPrime)*W[i,:]
             w = w/np.sqrt(np.dot(np.transpose(w),w))
-            if i == 1:
-                w = w - np.dot(W[0,:], np.dot(np.transpose(w),W[0,:]))
+            W[i,:] = w
+            if i >= 1:
+                w = w - np.dot(W[i-1,:], np.dot(np.transpose(w),W[i-1,:]))
                 w = w/np.sqrt(np.dot(np.transpose(w),w))
             #check convergence:
             #if np.allclose(1, np.dot(W[i,:],w)):
                 #print(np.dot(W[i,:],w))
                 #W[i,:] = w
             #print("iteration",k, "  ",np.dot(W[i,:],w))
-            W[i,:] = w
     S = np.dot(W,X)
     A = np.linalg.inv(W)
     return W,S,A
@@ -101,8 +99,8 @@ def orthogonalize(W):
 
 
 def fastISA(X, dim, red_dim, T, sub_dim, maxiter, seed, A_init):
-     
-    X_whitened, R, R_inv = whiten(X, zca=True, red_dim=red_dim)
+    X = center(X)
+    X_whitened, R, R_inv = whiten(X, zca=False, red_dim=red_dim)
     
     X = X_whitened.copy()
     block_matrix = np.zeros((dim,dim))
@@ -115,6 +113,7 @@ def fastISA(X, dim, red_dim, T, sub_dim, maxiter, seed, A_init):
     W = np.linalg.inv(np.dot(R, A_init)) +  np.random.multivariate_normal(mean=np.zeros(dim), cov=np.eye(dim)/dim, size = dim)
     W_orth = orthogonalize(W.copy())
     W = W_orth.copy()
+    
     for i in range(maxiter):
         s = np.dot(W,X)
         s_square = s**2
@@ -127,6 +126,7 @@ def fastISA(X, dim, red_dim, T, sub_dim, maxiter, seed, A_init):
         W_new = (s * g).dot(X.T)/float(T) - W *(men.dot(np.ones((1, W.shape[1]))))
         W_orth = orthogonalize(W_new.copy())
         W = W_orth.copy()
+        
     S = np.dot(W,X)
     
     return W,S, R
@@ -137,11 +137,11 @@ from data_utils import gen_super_gauss
 #A = scipy.io.loadmat("A.mat")['M']
 #X = scipy.io.loadmat("X.mat")['X']
 #super_gauss = scipy.io.loadmat("supergauss.mat")['S']
-A, X, super_gauss = gen_super_gauss(dim=20, red_dim=20, T=10000, sub_dim=4, seed=5)
-W_true = np.linalg.inv(A)
-W,S,R = fastISA(X=X, dim=20, red_dim=20, T=10000, sub_dim=4, maxiter=15, seed=5, A_init=A)
-print(W_true-W)
-plt.figure()
-plt.imshow(np.dot(np.dot(W, R), A), cmap='gray', vmin=-1, vmax=1)
-scipy.io.savemat('result.mat', {'arr':np.dot(np.dot(W, R), A)})
-
+if __name__ == '__main__':
+    A, X, super_gauss = gen_super_gauss(dim=20, red_dim=20, T=10000, sub_dim=4, seed=5)
+    W_true = np.linalg.inv(A)
+    W,S,R = fastISA(X=X, dim=20, red_dim=20, T=10000, sub_dim=4, maxiter=15, seed=5, A_init=A)
+    print(W_true-W)
+    plt.figure()
+    plt.imshow(np.dot(np.dot(W, R), A), cmap='gray', vmin=-1, vmax=1)
+    scipy.io.savemat('result.mat', {'arr':np.dot(np.dot(W, R), A)})

@@ -88,10 +88,18 @@ class Audio:
     
 class Image:
     
-    def __init__(self,paths,shape=225):
-        self.paths = paths
+    def __init__(self, nb_images=3, shape=225):
+        im_gl_path = '../data/image/'
+        if nb_images == 2:
+            ims = ['grass.jpeg', 'emma.jpeg']
+        if nb_images == 3:
+            ims = ['grass.jpeg', 'emma.jpeg', 'emma_2.jpeg']
+        if nb_images == 4:
+            ims = ['grass.jpeg', 'grass_2.jpeg', 'emma.jpeg','emma_2.jpeg']
+            
+        self.paths =[im_gl_path + i for i in ims]
         self.shape = shape
-        
+    
     def _load_images(self):
         images = []
         for path in self.paths:
@@ -102,41 +110,49 @@ class Image:
                 image_bw = imresize(image,(self.shape,self.shape))
             images.append(image_bw)
         self.images = images
-        
-
     
-    def mix_images(self,weights=None,verbose=2):
-        """
-        Loads images in paths and mix them
-        Images to be mixed should be of equal size
-        verbose : (2: displays source images + mixed image, 1: displays only 
-        source image, 0: displays nothing)
-        """
+        
+    def get_shape(self):
+        return (self.shape, self.shape)
+    
+        
+    def get_sources(self):
         self._load_images()
-        if weights:
-            mixed_image = np.zeros(self.images[0].shape)
-            for i,image in enumerate(self.images):
-                mixed_image += weights[i] * image
-            self.mixed_image = mixed_image / np.array(weights).sum()
-        else:
-            mixed_image = np.zeros(self.images[0].shape)
-            for image in self.images:
-                mixed_image += image
-            self.mixed_image = mixed_image / len(self.images)
+        images_flat = [i.flatten()/float(self.shape) for i in self.images]
+        return np.array(images_flat)
+    
+        
+    def mix_images(self, dimension=3, verbose=1, mixing_matrix=None):
+        """
+        * Loads images in paths and mix them
+        * Images to be mixed should be of equal size
+        * verbose : (2: displays source images + mixed image, 1: displays only 
+        source image, 0: displays nothing)
+        * if no weights are given, a random mixing matrix is used
+        
+        """
+        if not mixing_matrix:
+           mixing_matrix = np.random.rand(dimension, dimension)
+        sources = self.get_sources()   
+        mixture = np.dot(mixing_matrix, sources)
+        if verbose:
+            plt.figure(figsize=(15.0, 4.0))
+            for plot_num, image in enumerate(self.images):
+                plt.subplot(1, len(self.images), plot_num+1)
+                plt.imshow(image, cmap='gray')
+                plt.axis('off')
+            plt.suptitle("Source images")
+            plt.show()
             
-        if verbose == 2:
-            for i,image in enumerate(self.images):
-                plt.figure()
-                plt.imshow(image,cmap='gray')
-                plt.title('Source image ' + str(i+1))
-            plt.figure()
-            plt.imshow(self.mixed_image,cmap='gray')
-            plt.title('Mixed image')
-        elif verbose == 1:
-            plt.figure()
-            plt.imshow(self.mixed_image,cmap='gray')
-            plt.title('Mixed image')
-        return self.mixed_image
+            plt.figure(figsize=(15.0, 4.0))
+            for plot_num in range(dimension):
+                plt.subplot(1, dimension, plot_num+1)
+                plt.imshow(mixture[plot_num,:].reshape(self.get_shape()), cmap='gray')
+                plt.axis('off')
+            plt.suptitle("Mixtures")  
+            plt.show()
+            
+        return mixture, mixing_matrix
     
 def gen_super_gauss(dim, red_dim, T, sub_dim, seed):
     n_subspace = int(np.floor(dim / sub_dim))
@@ -165,13 +181,10 @@ def gen_super_gauss(dim, red_dim, T, sub_dim, seed):
         
 if __name__ == '__main__':
 
-    data_type = 'audio'
+    data_type = 'image'
     
     if data_type == 'image':
-        im_gl_path = '../data/image/'
-        im_paths = [im_gl_path + 'lena.jpeg',im_gl_path + 'emma.jpeg']
-        weights = [0.5,1.3]
-        mixed_image = Image(im_paths).mix_images(weights=weights,verbose=2)
+        mixture = Image(nb_images=4).mix_images(dimension=4, verbose=1)
     
     elif data_type == 'audio':
         audio_gl_path = '../data/audio/'
