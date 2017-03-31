@@ -10,7 +10,6 @@ Created on Wed Mar 22 14:11:50 2017
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy
-from sklearn.preprocessing import normalize
 
 
 def center(X):
@@ -18,7 +17,7 @@ def center(X):
      shift the row-wise mean to 0
      
     """
-    centered =  X - np.mean(X, axis=1)
+    centered =  X - np.mean(X, axis=1).reshape(len(X),1)
     return centered
 
     
@@ -62,16 +61,20 @@ def whiten(X, zca=True, red_dim=None):
     return X_whitened, R, R_inv
 
 
-def fastICA(X,n_iter=10):
+def fastICA(X,n_iter=10,init=False,W_init=None):
     X = center(X)
     X, _, _ = whiten(X)
     p, N = X.shape
     W = np.zeros((p,p))
+    if init:
+        noise = np.random.multivariate_normal(mean=np.zeros(p), cov=np.eye(p)/p, size = p)
+        W = W_init + 0.*noise
     iterations = n_iter
     #number of componenets
     for i in range(p):
         #random initialisation
-        W[i,:] = np.sqrt(1) * np.random.randn(p)
+        if not init:
+            W[i,:] = np.sqrt(1) * np.random.randn(p)
         for k in range(iterations):
             wtold = np.transpose(W[i,:])
             g = np.tanh(np.dot(wtold,X))
@@ -96,13 +99,6 @@ def orthogonalize(W):
     ret = np.real(np.linalg.inv(scipy.linalg.sqrtm(M))).dot(W)
     return ret
 
-def power_minus_half(M):
-    ret = np.real(np.linalg.inv(scipy.linalg.sqrtm(M)))
-    return ret
-
-def power_minus_3_2(M):
-    ret = np.dot(np.linalg.inv(M),power_minus_half(M))
-    return ret
 
 def fastISA(X, dim, red_dim, T, sub_dim, maxiter, seed, A_init):
      

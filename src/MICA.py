@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.io import wavfile
 
-from data_utils import Image, ECG_data
+from data_utils import Image, ECG_data, Audio
 from projection_utils import proj, orth_projection
 from fastICA import fastICA
 from jade import jadeR
@@ -44,7 +44,7 @@ if experiment == 'ecg3':
     if algorithm == 'jade':
         unmixing_mat = np.asarray(jadeR(channels_3))
     elif algorithm == 'fastICA':
-        unmixing_mat,_,_ = fastICA(channels_3.T)
+        unmixing_mat,_,_ = fastICA(channels_3)
     else:
         print('Algorithm ', algorithm, ' is not implemented: using jade')
     A_hat = np.linalg.inv(unmixing_mat)
@@ -80,8 +80,8 @@ if experiment == 'ecg3':
         c_mother = [0, 1] 
         c_foetus = 2
     elif algorithm == 'fastICA':
-        c_mother = [0, 2] 
-        c_foetus = 1
+        c_mother = [2, 1] 
+        c_foetus = 0
     
     a_foetus = A_hat[:,c_foetus]
     Pi_f = 1/(np.linalg.norm(a_foetus))**2 * np.outer(a_foetus, a_foetus)
@@ -107,6 +107,33 @@ if experiment == 'ecg3':
     plt.xlim([0,500])
     plt.title('foetus')
 
+elif experiment == 'emmaICA':
+    # Load data
+    im_gl_path = '../data/image/'
+    paths = [im_gl_path + 'grass.jpeg',im_gl_path + 'emma.jpeg']
+    
+    # Mixing images
+    mixture_1 = Image(paths=paths).mix_images([0.5,0.5])/255.
+    mixture_2 = Image(paths=paths).mix_images(weights=[0.7,0.3],verbose=1)/255.
+
+    mixtures = np.array([mixture_1.flatten(),mixture_2.flatten()])
+    
+    # Performing ICA
+    if algorithm == 'jade':
+        unmixing_mat = np.asarray(jadeR(mixtures))
+    elif algorithm == 'fastICA':
+        W_init = np.linalg.inv(np.array([[0.5,0.5],[0.7,0.3]])).T
+        unmixing_mat, _,_ = fastICA(mixtures,n_iter=100,init=True,W_init=W_init)
+    A_hat = np.linalg.inv(unmixing_mat)
+    y = np.dot(unmixing_mat,mixtures)
+    
+    for i in range(2):
+        plt.figure()
+        plt.imshow(y[i,:].reshape(mixture_1.shape),cmap='gray')
+        plt.title('y for source ' + str(i))
+
+
+    
 elif experiment == 'emma':
     # Load data
     im_gl_path = '../data/image/'
@@ -121,10 +148,9 @@ elif experiment == 'emma':
     
     # Performing ICA
     if algorithm == 'jade':
-        unmixing_mat, _,_ = jadeR(mixtures)
+        unmixing_mat = np.asarray(jadeR(mixtures))
     elif algorithm == 'fastICA':
-        unmixing_mat, _,_ = fastICA(mixtures.T,n_iter=100)
-    unmixing_mat = np.asarray(jadeR(mixtures))
+        unmixing_mat, _,_ = fastICA(mixtures,n_iter=100)
     A_hat = np.linalg.inv(unmixing_mat)
     y = np.dot(unmixing_mat,mixtures)
     
@@ -328,7 +354,7 @@ elif experiment == 'test2':
     plt.title('grass')
 
  
-#%%
+
 elif experiment == 'audio':
      #Load data
     audio_gl_path = '../data/audio/'
@@ -343,7 +369,11 @@ elif experiment == 'audio':
     mixtures = np.array([mixture_1[:,0].flatten(),mixture_2[:,0].flatten(),mixture_3[:,0].flatten()])
     
     # Performing ICA
-    unmixing_mat = np.asarray(jadeR(mixtures))
+    if algorithm == 'jade':
+        unmixing_mat = np.asarray(jadeR(mixtures))
+    elif algorithm == 'fastICA':
+        unmixing_mat,_,_ = fastICA(mixtures,n_iter=100)
+        
     A_hat = np.linalg.inv(unmixing_mat)
     y = np.dot(unmixing_mat,mixtures)
     
@@ -353,37 +383,37 @@ elif experiment == 'audio':
         plt.plot(y[i,:].reshape(mixture_1[:,0].shape))
         plt.title('y for source ' + str(i))
 
-    wavfile.write(audio_gl_path + 'test_1.wav',rate=44100,data=y[0,:])
-    wavfile.write(audio_gl_path + 'test_2.wav',rate=44100,data=y[1,:])
-    wavfile.write(audio_gl_path + 'test_3.wav',rate=44100,data=y[2,:])
+    audio_gl_path = '../data/audio/FastICAResult'
+    wavfile.write(audio_gl_path + 'f_test_1.wav',rate=44100,data=y[0,:])
+    wavfile.write(audio_gl_path + 'f_test_2.wav',rate=44100,data=y[1,:])
+    wavfile.write(audio_gl_path + 'f_test_3.wav',rate=44100,data=y[2,:])
     
-    
-         #Orthogonal projections
-        
-    c_emma = [1,2]
-    c_grass = 0
-    
-    a_grass = A_hat[:,c_grass]
-    a_emma = A_hat[:, c_emma]
-    
-    Pi_emma = proj(a_emma)
-    Pi_grass = 1/(np.linalg.norm(a_grass))**2 * np.outer(a_grass, a_grass)
-  
-    
-    list_Pi = [Pi_grass,Pi_emma]
-    orth_projs = orth_projection(list_Pi)
-    
-    mica_emma = orth_projs[1].dot(mixtures)
-    mica_grass = orth_projs[0].dot(mixtures)
-    
-    wavfile.write(audio_gl_path + 'test_adc_1.wav',rate=44100,data=mica_grass[0])
-    wavfile.write(audio_gl_path + 'test_beatles_1.wav',rate=44100,data=mica_emma[0])
-    wavfile.write(audio_gl_path + 'test_adc_2.wav',rate=44100,data=mica_grass[0])
-    wavfile.write(audio_gl_path + 'test_beatles_2.wav',rate=44100,data=mica_emma[0])
-    wavfile.write(audio_gl_path + 'test_adc_3.wav',rate=44100,data=mica_grass[0])
-    wavfile.write(audio_gl_path + 'test_beatles_3.wav',rate=44100,data=mica_emma[0])
-    
-#%%
-    wavfile.write(audio_gl_path + 'mixture_1_th_lib.wav',rate=44100,data=mixture_1[0])
-    wavfile.write(audio_gl_path + 'mixture_2_th_lib.wav',rate=44100,data=mixture_2[0])
-    wavfile.write(audio_gl_path + 'mixture_3_th_lib.wav',rate=44100,data=mixture_3[0])    
+#    
+#         #Orthogonal projections
+#        
+#    c_emma = [1,2]
+#    c_grass = 0
+#    
+#    a_grass = A_hat[:,c_grass]
+#    a_emma = A_hat[:, c_emma]
+#    
+#    Pi_emma = proj(a_emma)
+#    Pi_grass = 1/(np.linalg.norm(a_grass))**2 * np.outer(a_grass, a_grass)
+#  
+#    
+#    list_Pi = [Pi_grass,Pi_emma]
+#    orth_projs = orth_projection(list_Pi)
+#    
+#    mica_emma = orth_projs[1].dot(mixtures)
+#    mica_grass = orth_projs[0].dot(mixtures)
+#    
+#    wavfile.write(audio_gl_path + 'f_test_adc_1.wav',rate=44100,data=mica_grass[0])
+#    wavfile.write(audio_gl_path + 'f_test_beatles_1.wav',rate=44100,data=mica_emma[0])
+#    wavfile.write(audio_gl_path + 'f_test_adc_2.wav',rate=44100,data=mica_grass[0])
+#    wavfile.write(audio_gl_path + 'f_test_beatles_2.wav',rate=44100,data=mica_emma[0])
+#    wavfile.write(audio_gl_path + 'f_test_adc_3.wav',rate=44100,data=mica_grass[0])
+#    wavfile.write(audio_gl_path + 'f_test_beatles_3.wav',rate=44100,data=mica_emma[0])
+#    
+#    wavfile.write(audio_gl_path + 'f_mixture_1_th_lib.wav',rate=44100,data=mixture_1[0])
+#    wavfile.write(audio_gl_path + 'f_mixture_2_th_lib.wav',rate=44100,data=mixture_2[0])
+#    wavfile.write(audio_gl_path + 'f_mixture_3_th_lib.wav',rate=44100,data=mixture_3[0])    
