@@ -79,19 +79,14 @@ def fastICA(X, n_iter=10, init=False, A_init=None):
             gPrime = np.ones((1,N))- np.multiply(np.tanh(np.dot(wtold,X)), np.tanh(np.dot(wtold,X)))
             w = 1/N*np.dot(X, np.transpose(g))- np.mean(gPrime)*W[i,:]
             w = w/np.sqrt(np.dot(np.transpose(w),w))
-            W[i,:] = w
             if i >= 1:
                 sum_vecs = 0
                 for j in range(p-1):
-                    sum_vecs += np.dot(W[j,:], np.dot(np.transpose(w),W[j,:]))
+                    sum_vecs += np.dot(np.dot(w.T, W[j,:]), W[j,:])
                 w = w - sum_vecs
                 w = w/np.sqrt(np.dot(np.transpose(w),w))
-                W[i,:] = w
-            #check convergence:
-#            if np.allclose(1, np.dot(W[i,:],w)):
-#                print(np.dot(W[i,:],w))
-#                W[i,:] = w
-#            print("iteration",k, "  ",np.dot(W[i,:],w))
+            W[i,:] = w
+    print(np.dot(W, W.T))         
     S = np.dot(W,X)
     A = np.linalg.inv(W)
     return W,S,A
