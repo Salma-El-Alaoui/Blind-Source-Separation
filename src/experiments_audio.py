@@ -9,23 +9,30 @@ Created on Sat Apr  1 11:35:05 2017
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.io import wavfile
-
-from data_utils import Image, ECG_data, Audio
+from data_utils import Audio
 from projection_utils import proj, orth_projection
-from fastICA import fastICA
+from fastICA import fastICA, fastISA
 from jade import jadeR
 
-
 n_sources = 4
+n_mixtures = 4
 sub_dim = 2
 method = 'mica'
 algorithm ='jade'
-mixing_matrix = np.array([[ 0.9703649 ,  0.72929818,  0.18619978,  0.92128597],
-       [ 0.47784494,  0.05356984,  0.8321572 ,  0.89070084],
-       [ 0.34709615,  0.95119286,  0.20143702,  0.10954151],
-       [ 0.89497312,  0.38542305,  0.51929272,  0.32574721]])
+audio_results_path = '../results/audio/'
+mixing_matrix = np.array([[1./12,1./8,2./6,1./6], 
+                         [1/6, 1/6, 1/6, 1/6],
+                         [0.2, 0.3, 0.4, 0.5],
+                         #[1/2, 1/3, 1/4, 1/5],
+                         [2./6,1./6,1./12,1./8]])
+#mixing_matrix = np.array([[1./12,1./6], 
+#                         [2./6,1./8]])
+sum_rows = mixing_matrix.sum(axis=1)
+mixing_matrix = mixing_matrix / sum_rows.reshape(mixing_matrix.shape[0],1)
 
 # Loading Data
+audio = Audio(nb_tracks=n_sources).load_tracks()
+mixtures, mixing = audio.mix_tracks(load=False, dimension=n_mixtures, verbose=True)
 
 # Performing ICA
 if method == 'mica' or method =='ica':
@@ -37,59 +44,57 @@ if method == 'mica' or method =='ica':
     y = np.dot(unmixing_mat, mixtures)
     
     plt.figure(figsize=(15.0, 4.0))
-    for plot_num in range(n_sources):
+    for plot_num in range(n_mixtures):
         plt.subplot(1, n_sources, plot_num+1)
-        plt.imshow(y[plot_num, :].reshape(im.get_shape()),cmap='gray')
-        plt.axis('off')
+        file_name = audio_results_path +'y_source_jade'+str(plot_num)+'.wav'
+        wavfile.write(file_name ,rate=44100, data=y[plot_num, :])
+        plt.plot(y[plot_num, :])
         plt.title('y for source ' + str(plot_num))
         #plt.suptitle("Recovered Sources with ICA")
     plt.show()
-        
+      
     # Orthogonal projections 
     if method == 'mica':
-        if n_sources == 3:
-            c_emma = [0,1]
-            c_grass = 2
-        elif n_sources == 4:
-            c_emma = [0, 1]
-            c_grass = [2, 3]
+        if n_mixtures == 4:
+            c_beatles = [1, 2]
+            c_acdc = [0, 3]
+            
+        a_acdc = A_hat[:,c_acdc]
+        a_beatles = A_hat[:, c_beatles]
         
-        a_grass = A_hat[:,c_grass]
-        a_emma = A_hat[:, c_emma]
-        
-        Pi_emma = proj(a_emma)
-        if n_sources == 3:
-            Pi_grass = 1/(np.linalg.norm(a_grass))**2 * np.outer(a_grass, a_grass)
-        elif n_sources == 4:
-            Pi_grass = proj(a_grass)
-          
-        list_Pi = [Pi_grass,Pi_emma]
+        Pi_beatles = proj(a_beatles)
+        Pi_acdc = proj(a_acdc)
+    
+        list_Pi = [Pi_acdc,Pi_beatles]
         orth_projs = orth_projection(list_Pi)
         
-        mica_grass = orth_projs[0].dot(mixtures)
-        mica_emma = orth_projs[1].dot(mixtures)
+        mica_acdc = orth_projs[0].dot(mixtures)
+        mica_beatles = orth_projs[1].dot(mixtures)
     
         # Plotting final pictures
         plt.figure(figsize=(15.0, 4.0))
-        for plot_num in range(n_sources):
+        for plot_num in range(n_mixtures):
             plt.subplot(1, n_sources, plot_num+1)
-            plt.imshow(mica_emma[plot_num].reshape(im.get_shape()),cmap='gray')
-            plt.axis('off')
-            #plt.suptitle("Emma MICA Component")
+            file_name = audio_results_path +'component_beatles_'+str(plot_num)+'_jade'+'.wav'
+            wavfile.write(file_name ,rate=44100, data=mica_beatles[plot_num]/100)
+            plt.plot(mica_beatles[plot_num])
+            #plt.suptitle("beatles MICA Component")
             
         plt.figure(figsize=(15.0, 4.0))
-        for plot_num in range(n_sources):
+        for plot_num in range(n_mixtures):
             plt.subplot(1, n_sources, plot_num+1)
-            plt.imshow(mica_grass[plot_num].reshape(im.get_shape()),cmap='gray')
-            plt.axis('off')
-            #plt.suptitle("Grass MICA Component")
+            file_name = audio_results_path +'component_acdc_'+str(plot_num)+'_jade'+'.wav'
+            wavfile.write(file_name, rate=44100, data=mica_acdc[plot_num]/100)
+            plt.plot(mica_acdc[plot_num])
+            #plt.suptitle("acdc MICA Component")
 
 elif method == 'fastISA':
-    W,S,R = fastISA(X=mixtures, dim=n_sources, red_dim=mixtures.shape[0], T=mixtures.shape[1], sub_dim=sub_dim, maxiter=15, seed=5, A_init=mixing)
+    W,S,R = fastISA(X=mixtures, dim=mixtures.shape[0], red_dim=mixtures.shape[0], T=mixtures.shape[1], sub_dim=sub_dim, maxiter=15, seed=5, A_init=mixing)
     plt.figure(figsize=(15.0, 4.0))
-    for plot_num in range(n_sources):
+    for plot_num in range(n_mixtures):
         plt.subplot(1, n_sources, plot_num+1)
-        plt.imshow(S[plot_num, :].reshape(im.get_shape()),cmap='gray')
-        plt.axis('off')
+        plt.plot(S[plot_num, :])
+        file_name = audio_results_path +'fastISA_'+str(plot_num)+'.wav'
+        wavfile.write(file_name ,rate=44100, data=S[plot_num, :])
         #plt.suptitle("Recovered Sources with fastISA")
     plt.show()

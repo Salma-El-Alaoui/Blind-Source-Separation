@@ -35,12 +35,13 @@ class Audio:
     """
     
     def __init__(self, nb_tracks=2):
+        
         audio_gl_path = '../data/audio/'
         if nb_tracks== 2:
             tracks = ['LetItBe.wav', 'Thunderstruck.wav']
-        if nb_tracks == 6:
-            tracks = ['LetItBe1.wav', 'LetItBe2.wav', 'LetItBe3.wav', 'Thunder1.wav',
-            'Thunder2.wav', 'Thunder3.wav']
+        if nb_tracks == 4:
+            tracks = ['LetItBe1.wav', 'LetItBe2.wav', 'Thunder1.wav',
+            'Thunder2.wav']
             
         self.paths = [audio_gl_path + i for i in tracks]
         self.rates = []
@@ -54,6 +55,7 @@ class Audio:
             tracks.append(data[:, 0])
             lengths.append(len(data))
         min_size = min(lengths)
+        min_size = min_size/10
         sub_tracks = []
         for track in tracks:
             sub_tracks.append(track[:min_size])
@@ -78,17 +80,14 @@ class Audio:
             mixing_matrix = np.random.rand(dimension, len(self.tracks))
             
         sources = self.get_sources()  
-        print(sources)
-        print("sources", sources.shape)
         mixture = np.dot(mixing_matrix, sources)
-        print(mixture)
-        print("mixture", mixture.shape)
         if verbose:
             plt.figure(figsize=(15.0, 4.0))
             for plot_num, track in enumerate(self.tracks):
                 plt.subplot(1, len(self.tracks), plot_num+1)
                 plt.plot(track)
                 plt.xlim(0,100000)
+
             #plt.suptitle("Source images")
             plt.show()
             
@@ -97,6 +96,9 @@ class Audio:
                 plt.subplot(1, dimension, plot_num+1)
                 plt.plot(mixture[plot_num,:])
                 plt.xlim(0,100000)
+                audio_results_path = '../results/audio/'
+                file_name = audio_results_path +str(dimension)+'_'+'mixtures_'+str(plot_num)+'.wav'
+                wavfile.write(file_name ,rate=44100, data=mixture[plot_num,:])
             #plt.suptitle("Mixtures")  
             plt.show()
             
