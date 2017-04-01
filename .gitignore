@@ -123,7 +123,7 @@ ENV/
 
 ######### GITKEEP
 
-data/*
+data/audio
 
 features/*
 
