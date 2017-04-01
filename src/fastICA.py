@@ -81,13 +81,17 @@ def fastICA(X, n_iter=10, init=False, A_init=None):
             w = w/np.sqrt(np.dot(np.transpose(w),w))
             W[i,:] = w
             if i >= 1:
-                w = w - np.dot(W[i-1,:], np.dot(np.transpose(w),W[i-1,:]))
+                sum_vecs = 0
+                for j in range(p-1):
+                    sum_vecs += np.dot(W[j,:], np.dot(np.transpose(w),W[j,:]))
+                w = w - sum_vecs
                 w = w/np.sqrt(np.dot(np.transpose(w),w))
+                W[i,:] = w
             #check convergence:
-            #if np.allclose(1, np.dot(W[i,:],w)):
-                #print(np.dot(W[i,:],w))
-                #W[i,:] = w
-            #print("iteration",k, "  ",np.dot(W[i,:],w))
+#            if np.allclose(1, np.dot(W[i,:],w)):
+#                print(np.dot(W[i,:],w))
+#                W[i,:] = w
+#            print("iteration",k, "  ",np.dot(W[i,:],w))
     S = np.dot(W,X)
     A = np.linalg.inv(W)
     return W,S,A

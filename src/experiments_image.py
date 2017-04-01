@@ -14,7 +14,7 @@ from projection_utils import proj, orth_projection
 from fastICA import fastICA, fastISA
 from jade import jadeR
 
-n_sources = 3
+n_sources = 4
 sub_dim = 2
 method = 'mica'
 algorithm ='fastICA'
