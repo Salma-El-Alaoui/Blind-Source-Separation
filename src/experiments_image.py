@@ -85,7 +85,7 @@ if method == 'mica' or method =='ica':
             plt.axis('off')
             #plt.suptitle("Grass MICA Component")
 
-else:
+elif method == 'fastISA':
     W,S,R = fastISA(X=mixtures, dim=n_sources, red_dim=mixtures.shape[0], T=mixtures.shape[1], sub_dim=sub_dim, maxiter=15, seed=5, A_init=mixing)
     plt.figure(figsize=(15.0, 4.0))
     for plot_num in range(n_sources):
