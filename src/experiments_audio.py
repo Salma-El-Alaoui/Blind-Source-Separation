@@ -25,6 +25,7 @@ mixing_matrix = np.array([[1./12,1./8,2./6,1./6],
                          [0.2, 0.3, 0.4, 0.5],
                          #[1/2, 1/3, 1/4, 1/5],
                          [2./6,1./6,1./12,1./8]])
+
 #mixing_matrix = np.array([[1./12,1./6], 
 #                         [2./6,1./8]])
 sum_rows = mixing_matrix.sum(axis=1)

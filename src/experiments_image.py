@@ -8,8 +8,7 @@ Created on Fri Mar 31 17:32:15 2017
 """
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.io import wavfile
-from data_utils import Image, ECG_data, Audio
+from data_utils import Image
 from projection_utils import proj, orth_projection
 from fastICA import fastICA, fastISA
 from jade import jadeR
@@ -33,7 +32,7 @@ if method == 'mica' or method =='ica':
     if algorithm == 'jade':
         unmixing_mat = np.asarray(jadeR(mixtures))
     elif algorithm == 'fastICA':
-        unmixing_mat, _ ,_ = fastICA(mixtures, init=False, A_init=mixing, n_iter=50)
+        unmixing_mat, _, _ = fastICA(mixtures, init=False, A_init=mixing, n_iter=50)
     A_hat = np.linalg.inv(unmixing_mat)
     y = np.dot(unmixing_mat, mixtures)
     
