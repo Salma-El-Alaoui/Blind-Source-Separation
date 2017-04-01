@@ -31,13 +31,13 @@ paper Multidimensional Independent Component Analysis (1)
 #%%
 # Defining parameters of the experiment
 algorithm = 'jade'
-experiment = 'test2'
+experiment = 'ecg3'
 verbose = False
 
 
 # Running experiment
 if experiment == 'ecg3':
-    
+    xlim = 1000
     data = ECG_data(verbose=verbose).load()
     channels_3 = np.asarray(data[:3])
     
@@ -52,11 +52,16 @@ if experiment == 'ecg3':
     # Plotting results of ICA
     y = np.dot(unmixing_mat,channels_3)
     
-    for i in range(3):
-        plt.figure()
-        plt.plot(y[i,:])
+    plt.figure(figsize=(15.0, 4.0))
+    n_mixtures = 3
+    for i in range(n_mixtures):
+        plt.subplot(1, n_mixtures, i+1)
+        plt.plot(y[i,:],linewidth=2)
+        plt.xlim([0,xlim])
         plt.title('y for source ' + str(i))
-        
+        plt.suptitle("Recovered Sources with ICA")
+    plt.show()
+    
     # Orthogonal projection
     
     ## Attempt of KMeans to create 2 clusters - not satisfying
@@ -98,14 +103,19 @@ if experiment == 'ecg3':
     mica_mother = orth_projs[1].dot(channels_3)
     mica_foetus = orth_projs[0].dot(channels_3)
     
-    plt.figure()
-    plt.plot(mica_mother.T,linewidth=0.6)
-    plt.xlim([0,500])
-    plt.title('mother')
-    plt.figure()
-    plt.plot(mica_foetus.T,linewidth=0.6)
-    plt.xlim([0,500])
-    plt.title('foetus')
+    plt.figure(figsize=(15.0, 4.0))
+    for i in range(n_mixtures):
+        plt.subplot(1, n_mixtures, i+1)
+        plt.plot(mica_mother[i,:],linewidth=2)
+        plt.xlim([0,xlim])
+    plt.suptitle('Mother MICA Component')
+    
+    plt.figure(figsize=(15.0, 4.0))
+    for i in range(n_mixtures):
+        plt.subplot(1, n_mixtures, i+1)
+        plt.plot(mica_foetus[i,:],linewidth=2)
+        plt.xlim([0,xlim])
+    plt.suptitle('Foetus MICA Component')
 
 #%%
 
