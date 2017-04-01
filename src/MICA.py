@@ -31,7 +31,7 @@ paper Multidimensional Independent Component Analysis (1)
 #%%
 # Defining parameters of the experiment
 algorithm = 'jade'
-experiment = 'ecg3'
+experiment = 'audio'
 verbose = False
 
 

@@ -34,18 +34,24 @@ class Audio:
     Not tested, probably buggy
     """
     
-    def __init__(self,paths,verbose=True):
-        self.paths = paths
+    def __init__(self, nb_tracks=2):
+        audio_gl_path = '../data/audio/'
+        if nb_tracks== 2:
+            tracks = ['LetItBe.wav', 'Thunderstruck.wav']
+        if nb_tracks == 6:
+            tracks = ['LetItBe1.wav', 'LetItBe2.wav', 'LetItBe3.wav', 'Thunder1.wav',
+            'Thunder2.wav', 'Thunder3.wav']
+            
+        self.paths = [audio_gl_path + i for i in tracks]
         self.rates = []
-        self.verbose = verbose
         
-    def _load_tracks(self):
+    def load_tracks(self, verbose=False):
         tracks = []
         lengths = []
         for path in self.paths:
             rate, data = wavfile.read(path)
             self.rates.append(rate)
-            tracks.append(data)
+            tracks.append(data[:, 0])
             lengths.append(len(data))
         min_size = min(lengths)
         sub_tracks = []
@@ -53,38 +59,49 @@ class Audio:
             sub_tracks.append(track[:min_size])
         self.tracks = sub_tracks
         
-        if self.verbose:
+        if verbose:
             for i,track in enumerate(tracks):
                 plt.figure()
                 plt.plot(track)
                 plt.title('Track '+str(i))
                 plt.xlim(0,1000)
-        
-        #wavfile.write('test.wav',rate=44100,data=tracks[0]/2.)
-        #wavfile.write('test2.wav',rate=44100,data=tracks[1]/2.)
+                
         return self
-    
-    def mix_tracks(self,weights=None,load=True):
+        
+    def get_sources(self):
+        return np.array(self.tracks)
+        
+    def mix_tracks(self, mixing_matrix=None,load=True, dimension=3, verbose=True):
         if load:
             self._load_tracks()
-        if weights:
-            mixed_track = np.zeros(self.tracks[0].shape)
-            for i,track in enumerate(self.tracks):
-                mixed_track += weights[i] * track
-            self.mixed_track = mixed_track / np.array(weights).sum()
-        else:
-            mixed_track = np.zeros(self.tracks[0].shape)
-            for track in self.tracks:
-                mixed_track += track
-            self.mixed_track = mixed_track / len(self.tracks)
+        if not(type(mixing_matrix) is np.ndarray):
+            mixing_matrix = np.random.rand(dimension, len(self.tracks))
             
-        if self.verbose:
-            plt.figure()
-            plt.plot(track)
-            plt.title('Mixed track')
-            plt.xlim(0,100000)
-        return self.mixed_track
-    
+        sources = self.get_sources()  
+        print(sources)
+        print("sources", sources.shape)
+        mixture = np.dot(mixing_matrix, sources)
+        print(mixture)
+        print("mixture", mixture.shape)
+        if verbose:
+            plt.figure(figsize=(15.0, 4.0))
+            for plot_num, track in enumerate(self.tracks):
+                plt.subplot(1, len(self.tracks), plot_num+1)
+                plt.plot(track)
+                plt.xlim(0,100000)
+            #plt.suptitle("Source images")
+            plt.show()
+            
+            plt.figure(figsize=(15.0, 4.0))
+            for plot_num in range(dimension):
+                plt.subplot(1, dimension, plot_num+1)
+                plt.plot(mixture[plot_num,:])
+                plt.xlim(0,100000)
+            #plt.suptitle("Mixtures")  
+            plt.show()
+            
+        return mixture, mixing_matrix
+        
     
 class Image:
     
@@ -131,10 +148,9 @@ class Image:
         * if no weights are given, a random mixing matrix is used
         
         """
+        sources = self.get_sources()  
         if not(type(mixing_matrix) is np.ndarray):
-            print("I'm here")
-            mixing_matrix = np.random.rand(dimension, dimension)
-        sources = self.get_sources()   
+            mixing_matrix = np.random.rand(dimension, len(self.images)) 
         mixture = np.dot(mixing_matrix, sources)
         if verbose:
             plt.figure(figsize=(15.0, 4.0))
@@ -185,14 +201,11 @@ if __name__ == '__main__':
     data_type = 'image'
     
     if data_type == 'image':
-        mixture = Image(nb_images=4).mix_images(dimension=4, verbose=1)
+        mixture, mixing = Image(nb_images=4).mix_images(dimension=4, verbose=1)
     
     elif data_type == 'audio':
-        audio_gl_path = '../data/audio/'
-        audio_paths = [audio_gl_path + 'LetItBe1.wav',audio_gl_path + 'LetItBe2.wav',audio_gl_path + 'LetItBe3.wav',
-                       audio_gl_path + 'Highway1.wav',audio_gl_path + 'Highway2.wav',audio_gl_path + 'Highway3.wav']
-        mixed_track = Audio(audio_paths).mix_tracks()
-        wavfile.write(audio_gl_path + 'MixLibHth.wav',rate=44100,data=mixed_track)
+        audio = Audio(nb_tracks=6).load_tracks()
+        mixture, mixing = audio.mix_tracks(load=False, dimension=3, verbose=True)
     
     elif data_type == 'test':
         im_gl_path = '../data/image/'
