@@ -125,6 +125,8 @@ ENV/
 
 data/audio
 
+results/audio
+
 features/*
 
 *.npy
