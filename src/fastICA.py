@@ -85,8 +85,7 @@ def fastICA(X, n_iter=10, init=False, A_init=None):
                     sum_vecs += np.dot(np.dot(w.T, W[j,:]), W[j,:])
                 w = w - sum_vecs
                 w = w/np.sqrt(np.dot(np.transpose(w),w))
-            W[i,:] = w
-    print(np.dot(W, W.T))         
+            W[i,:] = w         
     S = np.dot(W,X)
     A = np.linalg.inv(W)
     return W,S,A

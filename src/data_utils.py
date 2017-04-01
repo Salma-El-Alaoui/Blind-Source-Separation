@@ -131,8 +131,9 @@ class Image:
         * if no weights are given, a random mixing matrix is used
         
         """
-        if not mixing_matrix:
-           mixing_matrix = np.random.rand(dimension, dimension)
+        if not(type(mixing_matrix) is np.ndarray):
+            print("I'm here")
+            mixing_matrix = np.random.rand(dimension, dimension)
         sources = self.get_sources()   
         mixture = np.dot(mixing_matrix, sources)
         if verbose:
@@ -141,7 +142,7 @@ class Image:
                 plt.subplot(1, len(self.images), plot_num+1)
                 plt.imshow(image, cmap='gray')
                 plt.axis('off')
-            plt.suptitle("Source images")
+            #plt.suptitle("Source images")
             plt.show()
             
             plt.figure(figsize=(15.0, 4.0))
@@ -149,7 +150,7 @@ class Image:
                 plt.subplot(1, dimension, plot_num+1)
                 plt.imshow(mixture[plot_num,:].reshape(self.get_shape()), cmap='gray')
                 plt.axis('off')
-            plt.suptitle("Mixtures")  
+            #plt.suptitle("Mixtures")  
             plt.show()
             
         return mixture, mixing_matrix
