@@ -13,11 +13,12 @@ from data_utils import Audio
 from projection_utils import proj, orth_projection
 from fastICA import fastICA, fastISA
 from jade import jadeR
+from fastICA import amari_index
 
 n_sources = 4
 n_mixtures = 4
 sub_dim = 2
-method = 'mica'
+method = 'fastISA'
 algorithm ='jade'
 audio_results_path = '../results/audio/'
 mixing_matrix = np.array([[1./12,1./8,2./6,1./6], 
@@ -99,3 +100,4 @@ elif method == 'fastISA':
         wavfile.write(file_name ,rate=44100, data=S[plot_num, :])
         #plt.suptitle("Recovered Sources with fastISA")
     plt.show()
+    print("amari_index ",amari_index(np.dot(np.dot(W, R), mixing_matrix),2))

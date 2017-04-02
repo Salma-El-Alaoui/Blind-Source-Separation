@@ -14,6 +14,7 @@ from fastICA import fastICA, fastISA
 from jade import jadeR
 from sklearn.cluster import KMeans
 from sklearn.metrics.pairwise import chi2_kernel
+from fastICA import amari_index, whiten, center
 
 n_sources = 4
 sub_dim = 2
@@ -37,10 +38,13 @@ unmixing_init_fastICA = np.array([[-0.81662635, -0.4594127,   0.31846124,  0.143
 
 init_fastISA = np.linalg.inv(unmixing_init_fastICA)
 
+
 # Loading Data
 im = Image(nb_images=n_sources)
 mixtures, mixing = im.mix_images(dimension=n_sources, verbose=1, mixing_matrix=mixing_matrix)
 sources = im.get_sources()
+
+_, R_init, _ = whiten(center(mixtures), zca=False)
     
 # Performing ICA
 if method == 'mica' or method =='ica':
@@ -48,7 +52,7 @@ if method == 'mica' or method =='ica':
         unmixing_mat = np.asarray(jadeR(mixtures))
     elif algorithm == 'fastICA':
         unmixing_mat, _, _ = fastICA(mixtures, init=False, A_init=mixing, n_iter=50)
-    print(unmixing_mat)
+        print("amari_index FastICA ",amari_index(np.dot(np.dot(unmixing_init_fastICA, R_init), mixing_matrix),2))
     A_hat = np.linalg.inv(unmixing_mat)
     y = np.dot(unmixing_mat, mixtures)
     

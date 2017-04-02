@@ -151,7 +151,7 @@ def amari_index(C, sub_dim):
             index += norms[r,s]/max_s
         index += -1
         
-    return index
+    return index/(2*n*(n-1))
 #%%
 from data_utils import gen_super_gauss
 
