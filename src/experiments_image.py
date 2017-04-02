@@ -15,7 +15,7 @@ from jade import jadeR
 
 n_sources = 4
 sub_dim = 2
-method = 'mica'
+method = 'fastISA'
 algorithm ='jade'
 mixing_matrix = np.array([[ 0.9703649 ,  0.72929818,  0.18619978,  0.92128597],
        [ 0.47784494,  0.05356984,  0.8321572 ,  0.89070084],
@@ -93,3 +93,4 @@ elif method == 'fastISA':
         plt.axis('off')
         #plt.suptitle("Recovered Sources with fastISA")
     plt.show()
+    print("amari_index ",amari_index(np.dot(np.dot(W, R), mixing_matrix),2))

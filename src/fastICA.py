@@ -20,6 +20,7 @@ def center(X):
     centered =  X - np.mean(X, axis=1).reshape(len(X),1)
     return centered
 
+
     
 def whiten(X, zca=True, red_dim=None):  
     if zca:
@@ -129,6 +130,28 @@ def fastISA(X, dim, red_dim, T, sub_dim, maxiter, seed, A_init):
     
     return W,S, R
 
+def amari_index(C, sub_dim):
+    eps = 1e-8
+    n = C.shape[0] // sub_dim
+    index = 0
+    norms = np.zeros((n,n)) 
+    for r in range(n):
+        for s in range(n):
+            norms[r,s] = np.linalg.norm(C[r*sub_dim:(r+1)*sub_dim,s*sub_dim:(s+1)*sub_dim])
+    #on the rows
+    for r in range(n):
+        max_r = np.max(norms[r,:]) + eps
+        for s in range(n): 
+            index += norms[r,s]/max_r
+        index += -1
+    #on the columns    
+    for s in range(n):
+        max_s = np.max(norms[:,s]) + eps
+        for r in range(n): 
+            index += norms[r,s]/max_s
+        index += -1
+        
+    return index
 #%%
 from data_utils import gen_super_gauss
 
@@ -143,3 +166,4 @@ if __name__ == '__main__':
     plt.figure()
     plt.imshow(np.dot(np.dot(W, R), A), cmap='gray', vmin=-1, vmax=1)
     scipy.io.savemat('result.mat', {'arr':np.dot(np.dot(W, R), A)})
+    print("amari_index ",amari_index(np.dot(np.dot(W, R), A),4))
