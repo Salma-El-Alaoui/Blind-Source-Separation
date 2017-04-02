@@ -10,7 +10,7 @@ Created on Wed Mar 22 14:11:50 2017
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy
-
+from data_utils import gen_super_gauss
 
 def center(X):
     """
@@ -152,17 +152,12 @@ def amari_index(C, sub_dim):
         index += -1
         
     return index/(2*n*(n-1))
-#%%
-from data_utils import gen_super_gauss
 
-#A = scipy.io.loadmat("A.mat")['M']
-#X = scipy.io.loadmat("X.mat")['X']
-#super_gauss = scipy.io.loadmat("supergauss.mat")['S']
+    
 if __name__ == '__main__':
     A, X, super_gauss = gen_super_gauss(dim=20, red_dim=20, T=10000, sub_dim=4, seed=5)
     W_true = np.linalg.inv(A)
     W,S,R = fastISA(X=X, dim=20, red_dim=20, T=10000, sub_dim=4, maxiter=15, seed=5, A_init=A)
     plt.figure()
     plt.imshow(np.dot(np.dot(W, R), A), cmap='gray', vmin=-1, vmax=1)
-    scipy.io.savemat('result.mat', {'arr':np.dot(np.dot(W, R), A)})
     print("amari_index ",amari_index(np.dot(np.dot(W, R), A),4))

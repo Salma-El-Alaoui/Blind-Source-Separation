@@ -14,6 +14,7 @@ from scipy.misc import imresize
 from HistogramOrientedGradient import HistogramOrientedGradient
 from equalization import equalize_item
 
+
 class ECG_data:
     def __init__(self,verbose=False):
         self.verbose = verbose
@@ -29,6 +30,7 @@ class ECG_data:
                 plt.plot(channel[:500])
                 plt.title('Channel ' + str(i+1))
         return channels
+
         
 class Audio:
     """
@@ -75,7 +77,7 @@ class Audio:
     def get_sources(self):
         return np.array(self.tracks)
         
-    def mix_tracks(self, mixing_matrix=None,load=True, dimension=3, verbose=True):
+    def mix_tracks(self, mixing_matrix=None,load=True, dimension=3, verbose=True, write=False):
         if load:
             self._load_tracks()
         if not(type(mixing_matrix) is np.ndarray):
@@ -89,8 +91,7 @@ class Audio:
                 plt.subplot(1, len(self.tracks), plot_num+1)
                 plt.plot(track)
                 plt.xlim(0,100000)
-
-            #plt.suptitle("Source images")
+            plt.suptitle("Source images")
             plt.show()
             
             plt.figure(figsize=(15.0, 4.0))
@@ -98,15 +99,18 @@ class Audio:
                 plt.subplot(1, dimension, plot_num+1)
                 plt.plot(mixture[plot_num,:])
                 plt.xlim(0,100000)
+            plt.suptitle("Mixtures") 
+            plt.show()
+            if write:
                 audio_results_path = '../results/audio/'
                 file_name = audio_results_path +str(dimension)+'_'+'mixtures_'+str(plot_num)+'.wav'
                 wavfile.write(file_name ,rate=44100, data=mixture[plot_num,:])
-            #plt.suptitle("Mixtures")  
-            plt.show()
+             
+            
             
         return mixture, mixing_matrix
+
         
-    
 class Image:
     
     def __init__(self, nb_images=3, shape=224):
@@ -162,7 +166,7 @@ class Image:
                 plt.subplot(1, len(self.images), plot_num+1)
                 plt.imshow(image, cmap='gray')
                 plt.axis('off')
-            #plt.suptitle("Source images")
+            plt.suptitle("Source images")
             plt.show()
             
             plt.figure(figsize=(15.0, 4.0))
@@ -170,9 +174,9 @@ class Image:
                 plt.subplot(1, dimension, plot_num+1)
                 plt.imshow(mixture[plot_num,:].reshape(self.get_shape()), cmap='gray')
                 plt.axis('off')
-            #plt.suptitle("Mixtures")  
+            plt.suptitle("Mixtures")  
             plt.show()
-            
+        
         return mixture, mixing_matrix
 
         
@@ -194,7 +198,6 @@ def gen_super_gauss(dim, red_dim, T, sub_dim, seed):
     super_gauss = gaussians / normalization_const
     
     A = np.random.rand(dim,dim)
-    #A = np.arange(dim**2).reshape(dim,dim)
     X = np.dot(A,super_gauss)
     
     return  A, X, super_gauss
@@ -257,7 +260,6 @@ if __name__ == '__main__':
         im_paths = [im_gl_path + 'lena.jpeg',im_gl_path + 'emma.jpeg']
         weights = [0.5,1.3]
         mixed_image = Image(im_paths).mix_images(weights=weights,verbose=2)
-        print(gen_super_gauss(4,3,100,2,10))
 
     
 
