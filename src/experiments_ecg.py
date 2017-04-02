@@ -24,7 +24,6 @@ paper Multidimensional Independent Component Analysis (1)
 - Available experiments:
     - experiment = 'ecg3' (3 channels of ecg, separating mother from baby's
     signal, same as in Cardoso's paper (1))
-    - experiment = 'emma' (separating image of Emma Watson from picture of grass)
     
 """
 #%%
@@ -61,24 +60,6 @@ if experiment == 'ecg3':
         plt.suptitle("Recovered Sources with ICA")
     plt.show()
     
-    # Orthogonal projection
-    
-    ## Attempt of KMeans to create 2 clusters - not satisfying
-    #from sklearn.cluster import KMeans
-    #import pywt
-    #n_clusters = 2 
-    #distance = 'euclidean'
-    #y_dwt = []
-    #for i in range(len(y)):
-    #    cA, cD = pywt.dwt(y[i], 'haar')
-    #    list(cA).extend(list(cD))
-    #    y_dwt.append(cA)
-    #    
-    #y_clusters = KMeans(n_clusters=n_clusters).fit_predict(np.asarray(y_dwt))
-    #clusters_belonging = []
-    #
-    #for cluster in range(n_clusters):
-    #    clusters_belonging.append(np.where(y_clusters==cluster))
     
     if algorithm == 'jade':
         c_mother = [0, 1] 
