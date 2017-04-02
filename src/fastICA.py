@@ -139,7 +139,6 @@ if __name__ == '__main__':
     A, X, super_gauss = gen_super_gauss(dim=20, red_dim=20, T=10000, sub_dim=4, seed=5)
     W_true = np.linalg.inv(A)
     W,S,R = fastISA(X=X, dim=20, red_dim=20, T=10000, sub_dim=4, maxiter=15, seed=5, A_init=A)
-    print(W_true-W)
     plt.figure()
     plt.imshow(np.dot(np.dot(W, R), A), cmap='gray', vmin=-1, vmax=1)
     scipy.io.savemat('result.mat', {'arr':np.dot(np.dot(W, R), A)})

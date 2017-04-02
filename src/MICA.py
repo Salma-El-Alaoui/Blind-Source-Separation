@@ -9,7 +9,6 @@ Created on Tue Mar 21 15:00:09 2017
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.io import wavfile
-
 from data_utils import Image, ECG_data, Audio
 from projection_utils import proj, orth_projection
 from fastICA import fastICA

@@ -5,7 +5,6 @@ Created on Wed Feb 22 16:06:24 2017
 
 @author: camillejandot
 """
-
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -45,27 +44,27 @@ def plot_histograms(hist,hist_after_eq):
     plt.show()
     
 def equalize_item(item,rgb=False,verbose=False,report=False):
-#    img = np.zeros((32,32,3))
-#
-#    img[:,:,0] = item[:1024].reshape(32,32)
-#    img[:,:,1] = item[1024:2048].reshape(32,32)
-#    img[:,:,2] = item[2048:].reshape(32,32)
-#    
-#    min_r = np.ones((32,32))*img[:,:,0].min() 
-#    min_g = np.ones((32,32))*img[:,:,1].min() 
-#    min_b = np.ones((32,32))*img[:,:,2].min() 
-#    
-#    img[:,:,0] -= min_r
-#    img[:,:,1] -= min_g
-#    img[:,:,2] -= min_b
-#    
-#    img[:,:,0] *= 255.
-#    img[:,:,1] *= 255.
-#    img[:,:,2] *= 255.
+    img = np.zeros((32,32,3))
+
+    img[:,:,0] = item[:1024].reshape(32,32)
+    img[:,:,1] = item[1024:2048].reshape(32,32)
+    img[:,:,2] = item[2048:].reshape(32,32)
+    
+    min_r = np.ones((32,32))*img[:,:,0].min() 
+    min_g = np.ones((32,32))*img[:,:,1].min() 
+    min_b = np.ones((32,32))*img[:,:,2].min() 
+    
+    img[:,:,0] -= min_r
+    img[:,:,1] -= min_g
+    img[:,:,2] -= min_b
+    
+    img[:,:,0] *= 255.
+    img[:,:,1] *= 255.
+    img[:,:,2] *= 255.
     
     if not rgb:
-        #img_grey = np.uint8((0.2126 * img[:,:,0]) + np.uint8(0.7152 * img[:,:,1]) + np.uint8(0.0722 * img[:,:,2]))
-        input_grey = item #img_grey.copy()
+        img_grey = np.uint8((0.2126 * img[:,:,0]) + np.uint8(0.7152 * img[:,:,1]) + np.uint8(0.0722 * img[:,:,2]))
+        input_grey = img_grey.copy()
         
         eq_img_grey, hist_grey, eq_hist_grey = equal_hist(input_grey)
     

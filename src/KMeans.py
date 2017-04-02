@@ -8,7 +8,8 @@ Created on Sat Mar 25 13:32:09 2017
 from numpy.linalg import norm
 import numpy as np
 from random import shuffle
-from fastdtw import fastdtw
+#from fastdtw import fastdtw
+from sklearn.metrics.pairwise import chi2_kernel
 
 class KMeans:
     """
@@ -19,7 +20,7 @@ class KMeans:
         (https://en.wikipedia.org/wiki/Dynamic_time_warping)
         
     """
-    def __init__(self,n_clusters=2,n_iter=10,distance='euclidean'):
+    def __init__(self,n_clusters=2, n_iter=10, distance='euclidean'):
         self.n_clusters = n_clusters
         self.n_iter = n_iter
         self.centroids = 0
@@ -56,9 +57,12 @@ class KMeans:
                 centroid = centroids[i_centroid]
                 if self.distance == 'euclidean':
                     dists[i_centroid] = norm(obj-centroid,2)
+                if self.distance == 'chi_2':
+                    dists[i_centroid] == chi2_kernel(obj, centroid, gamma=0.01)
                 elif self.distance == 'dtw':
                     #dists[i_centroid] = self._DTW_distance(obj,centroid)
-                    dists[i_centroid],_ = fastdtw(obj,centroid)
+                    #dists[i_centroid],_ = fastdtw(obj,centroid)
+                    pass
                 else:
                     #print('distance ',self.distance,' not implemented: using euclidean)
                     dists[i_centroid] = norm(obj-centroid,2)
