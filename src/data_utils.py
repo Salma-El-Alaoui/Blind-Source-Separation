@@ -11,6 +11,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from scipy.misc import imresize
+from HistogramOrientedGradient import HistogramOrientedGradient
+from equalization import equalize_item
 
 class ECG_data:
     def __init__(self,verbose=False):
@@ -107,7 +109,7 @@ class Audio:
     
 class Image:
     
-    def __init__(self, nb_images=3, shape=225):
+    def __init__(self, nb_images=3, shape=224):
         im_gl_path = '../data/image/'
         if nb_images == 2:
             ims = ['grass.jpeg', 'emma.jpeg']
@@ -172,7 +174,8 @@ class Image:
             plt.show()
             
         return mixture, mixing_matrix
-    
+
+        
 def gen_super_gauss(dim, red_dim, T, sub_dim, seed):
     n_subspace = int(np.floor(dim / sub_dim))
     
@@ -195,9 +198,49 @@ def gen_super_gauss(dim, red_dim, T, sub_dim, seed):
     X = np.dot(A,super_gauss)
     
     return  A, X, super_gauss
-            
+    
+def vec_to_img(item,rgb=False):
+    
+    length = int(np.sqrt(item.shape[0]))
+    img = np.zeros((length, length, 3))
+    for i in range(3):
+        img[:, :, i] = item.reshape(length, length)
         
+    if rgb:
+        return img
         
+    else:
+        ret = (0.2126 * img[:,:,0]) + (0.7152 * img[:,:,1]) + (0.0722 * img[:,:,2])
+        return ret
+        
+def rgb_to_opprgb(item):
+    img_opp = np.zeros((32,32,3))
+    opp_mult = np.array([[1.,0.,1,13983],[1.,-0.39465,-0.58060],[1.,2.03211,0.]])
+    img = vec_to_img(item,rgb=True)
+
+    img_opp[:,:,0] = opp_mult[0,0]*img[:,:,0] + opp_mult[0,1]*img[:,:,1] + opp_mult[0,2]*img[:,:,2]
+    img_opp[:,:,1] = opp_mult[1,0]*img[:,:,0] + opp_mult[1,1]*img[:,:,1] + opp_mult[1,2]*img[:,:,2]
+    img_opp[:,:,2] = opp_mult[2,0]*img[:,:,0] + opp_mult[2,1]*img[:,:,1] + opp_mult[2,2]*img[:,:,2]
+
+    return img_opp
+
+def load_hog_features(data_train, rgb=False, equalize=True, yuv=False, n_cells_hog=8,signed=True,):
+    hist_train = []
+    hog = HistogramOrientedGradient()   
+
+    for id_img in range(len(data_train)):
+        image = data_train[id_img]
+        if equalize:
+            img = equalize_item(image, rgb=rgb, verbose=False)
+        elif yuv:
+            img = rgb_to_opprgb(image)
+        else:
+            img = vec_to_img(image, rgb=rgb)
+        hist_train.append(hog._build_histogram(img))    
+    X_train = np.array(hist_train)
+    return X_train  
+
+     
 if __name__ == '__main__':
 
     data_type = 'image'
