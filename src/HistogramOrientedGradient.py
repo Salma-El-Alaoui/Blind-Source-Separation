@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Mar  3 18:19:43 2017
 
 @author: camillejandot
 """
@@ -10,7 +9,7 @@ import numpy as np
 
 class HistogramOrientedGradient():
     def __init__(self, cell_size=4, n_bins=18, signed=True, img_size=224):
-        self.n_cells = int(img_size/cell_size)  # nb of cells (one 1 axis)
+        self.n_cells = int(img_size / cell_size)  # nb of cells (one 1 axis)
         self.cell_size = cell_size  # nb of pixel in cell (along 1 axis)
         self.n_bins = n_bins
         self.img_size = img_size
@@ -39,7 +38,6 @@ class HistogramOrientedGradient():
         orientation_deg = (orientation_rad * 180 / (2 * np.pi)) % 360
         return orientation_deg
 
-
     def _orientation_interpolation(self, orientation):
         n_bins = self.n_bins
         if self.signed:
@@ -67,8 +65,6 @@ class HistogramOrientedGradient():
                 ind_j = j // self.cell_size
                 average[ind_i, ind_j, :] = img[i:i + self.cell_size, j:j + self.cell_size, :].mean(axis=0).mean(axis=0)
         return average
-
-
 
     def _normalize_histogram(self, raw_histogram):
         pass
@@ -110,5 +106,3 @@ class HistogramOrientedGradient():
             feat[i] = self._build_histogram(item)
 
         return feat
-
-
