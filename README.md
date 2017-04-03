@@ -6,9 +6,16 @@ Run the following scripts:
 
 - experiments_ecg.py : Script that enables to perform Multidimensional ICA on ecg data (3 channels of ecg, in which we want to separate the baby's ecg' from its mom's', same as in Cardoso's paper (1)) adapted from Cardoso's paper Multidimensional Independent Component Analysis (1). Available implementations of ICA are JADE and FastICA.
 
-- experiments_audio.py : Script that enables to perform ICA, Multidimensional ICA and FastISA on audio data. By changing flags, one can perform either ICA (set flag method to "ica") on a mixture of two songs (with JADE or FastICA (set flag algorithm to "jade" or "fastICA")) MICA on a mixture of tracks (set flag method to "mica")  on a mixture of two songs (with JADE or FastICA (set flag algorithm to "jade" or "fastICA")) or fastISA on a a mixture of tracks (set flag method to fastISA)
+- experiments_audio.py : Script that enables to perform ICA, Multidimensional ICA and FastISA on audio data. 
+By changing flags, one can perform either:
+    - ICA (set flag method to `ica`) on a mixture of two songs (with JADE or FastICA (set flag algorithm to `jade` or `fastICA`)) 
+    - MICA on a mixture of tracks (set flag method to `mica`)  on a mixture of two songs (with JADE or FastICA (set flag algorithm to `jade` or `fastICA`)) 
+    - fastISA on a a mixture of tracks (set flag method to fastISA)
 
-- experiments_images.py : Script that enables to perform ICA, Multidimensional ICA and FastISA on image data. By changing flags, one can perform either MICA (set flag method to "mica")  on a mixture of images (with JADE or FastICA (set flag algorithm to "jade" or "fastICA")) or fastISA (set flag method to fastISA)
+- experiments_images.py : Script that enables to perform ICA, Multidimensional ICA and FastISA on image data. 
+By changing flags, one can perform either:
+    - MICA (set flag method to `mica`)  on a mixture of images (with JADE or FastICA (set flag algorithm to `jade` or `fastICA`))
+    - fastISA (set flag method to fastISA)
 
 # Source Code:
 
