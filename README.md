@@ -1,7 +1,7 @@
 # Independent Subspace Analysis: Blind Source Separation
 Project for the course of Structured Data : Learning, Prediction, Dependency, Testing
 
-# To reproduce our experiments, 
+## To reproduce our experiments:
 Run the following scripts:
 
 - experiments_ecg.py : Script that enables to perform Multidimensional ICA on ecg data (3 channels of ecg, in which we want to separate the baby's ecg' from its mom's', same as in Cardoso's paper (1)) adapted from Cardoso's paper Multidimensional Independent Component Analysis (1). Available implementations of ICA are JADE and FastICA.
@@ -17,7 +17,7 @@ By changing flags, one can perform either:
     - MICA (set flag method to `mica`)  on a mixture of images (with JADE or FastICA (set flag algorithm to `jade` or `fastICA`))
     - fastISA (set flag method to fastISA)
 
-# Source Code:
+## Source Code:
 
 - projection_utils.py : contains the projection functions necessary to MICA
 
